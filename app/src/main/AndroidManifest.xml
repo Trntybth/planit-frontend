@@ -14,7 +14,7 @@
         android:theme="@style/Theme.Planitfrontend"
         tools:targetApi="31">
         <activity
-            android:name=".LoginActivity"
+            android:name=".WelcomePageActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
