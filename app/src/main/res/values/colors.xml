@@ -2,4 +2,13 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="aquabackground">#41E2BA</color>
+    <color name="orangering">#FB8B24</color>
+    <color name="pinkhot">#D90368</color>
+    <color name="purplehot">#820263</color>
+    <color name="pinkrose">#E86A92</color>
+    <color name="purpledark">#291720</color>
+
+
 </resources>

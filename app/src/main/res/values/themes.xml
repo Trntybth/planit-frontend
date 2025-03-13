@@ -3,7 +3,17 @@
     <style name="Base.Theme.Planitfrontend" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+
+
+        <item name="colorPrimary">@color/pinkrose</item>
+        <item name="colorSecondary">@color/pinkhot</item>
+        <item name="android:windowBackground">@color/aquabackground</item>
+        <item name="android:textColorPrimary">@color/pinkhot</item>
+        <item name="android:textColorSecondary">@color/pinkhot</item>
+
     </style>
 
-    <style name="Theme.Planitfrontend" parent="Base.Theme.Planitfrontend" />
+        <style name="Theme.Planitfrontend" parent="Base.Theme.Planitfrontend" />
+
+
 </resources>
