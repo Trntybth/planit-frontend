@@ -1,4 +1,4 @@
-package com.example.planit_frontend;
+package com.example.planit_frontend.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 

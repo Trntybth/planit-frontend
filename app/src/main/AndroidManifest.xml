@@ -14,14 +14,18 @@
         android:theme="@style/Theme.Planitfrontend"
         tools:targetApi="31">
         <activity
-            android:name=".WelcomePageActivity"
+            android:name=".view.WelcomePageActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LAUNCHER" /> <!--make welcome activity default opening screen-->
             </intent-filter>
         </activity>
+        <activity android:name=".view.MemberHomePageActivity" />
+        <activity android:name=".view.OrganisationHomePageActivity" />
+        <activity android:name=".view.LoginActivity" />
+
     </application>
 
 </manifest>

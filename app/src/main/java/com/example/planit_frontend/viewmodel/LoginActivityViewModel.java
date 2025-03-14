@@ -7,7 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
 
-import com.example.planit_frontend.UserApiService;
+import com.example.planit_frontend.model.UserApiService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -21,11 +21,13 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivityViewModel extends AndroidViewModel {
+
+/* This class handles the sign-in logic and backend communication. */
+public class LoginActivityViewModel extends AndroidViewModel {
     private final GoogleSignInClient googleSignInClient;
     private final MutableLiveData<GoogleSignInAccount> userAccount = new MutableLiveData<>();
 
-    public MainActivityViewModel(@NonNull Application application) {
+    public LoginActivityViewModel(@NonNull Application application) {
         super(application);
 
         // configures google sign in with cloud console client id
@@ -85,4 +87,3 @@ public class MainActivityViewModel extends AndroidViewModel {
         });
     }
 }
-
