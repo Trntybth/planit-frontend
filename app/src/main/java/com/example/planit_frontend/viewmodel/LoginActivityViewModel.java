@@ -1,36 +1,36 @@
 package com.example.planit_frontend.viewmodel;
 
 import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
-
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
-
+import com.example.planit_frontend.model.Member;
+import com.example.planit_frontend.model.Organisation;
+import com.example.planit_frontend.model.User;
 import com.example.planit_frontend.model.UserApiService;
+import com.example.planit_frontend.view.MemberHomePageActivity;
+import com.example.planit_frontend.view.OrganisationHomePageActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-
-/* This class handles the sign-in logic and backend communication. */
 public class LoginActivityViewModel extends AndroidViewModel {
     private final GoogleSignInClient googleSignInClient;
-    private final MutableLiveData<GoogleSignInAccount> userAccount = new MutableLiveData<>();
 
     public LoginActivityViewModel(@NonNull Application application) {
         super(application);
-
-        // configures google sign in with cloud console client id
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken("898751084700-cc0f2pdg3ucfjkm3egko17q5cn0h7qpa.apps.googleusercontent.com")
                 .requestEmail()
@@ -39,51 +39,66 @@ public class LoginActivityViewModel extends AndroidViewModel {
         googleSignInClient = GoogleSignIn.getClient(application, gso);
     }
 
-    // manages google sign in flow, obtains google ID token, sends token to API for user authentication, keeps track of signed in user info using LiveData
-
     public GoogleSignInClient getGoogleSignInClient() {
         return googleSignInClient;
     }
 
-    public MutableLiveData<GoogleSignInAccount> getUserAccount() {
-        return userAccount;
-    }
-
-    public void handleSignInResult(Task<GoogleSignInAccount> task) {
+    public void handleSignInResult(Task<GoogleSignInAccount> task, Context context) {
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
             if (account != null) {
-                userAccount.setValue(account);
-                sendTokenToBackend(account.getIdToken());
+                Toast.makeText(context, "Signed in as " + account.getEmail(), Toast.LENGTH_SHORT).show();
             }
         } catch (ApiException e) {
-            Log.e("GoogleSignIn", "Sign-in failed", e);
+            Toast.makeText(context, "Sign-in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void sendTokenToBackend(String idToken) {
+    public void saveUserToBackend(String username, String userType, Context context) {
+
+
+        GoogleSignInAccount googleAccount = GoogleSignIn.getLastSignedInAccount(context);
+
+        if (googleAccount != null) {
+            User user = "Member".equals(userType) ?
+                    new Member(googleAccount.getId(), googleAccount.getEmail(), username) :
+                    new Organisation(googleAccount.getId(), googleAccount.getEmail(), username);
+
+            sendUserDataToBackend(user, userType, context);
+        }
+    }
+
+    private void sendUserDataToBackend(User user, String userType, Context context) {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://10.0.2.2:8080/users/")
+                .baseUrl("http://localhost:8080/users")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         UserApiService apiService = retrofit.create(UserApiService.class);
 
-        Call<Void> call = apiService.sendGoogleToken(idToken);
+        Call<Void> call = apiService.saveUser(user);
         call.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    Log.d("BackendAuth", "Token successfully sent to backend!");
+                    navigateToNextScreen(userType, context);
                 } else {
-                    Log.e("BackendAuth", "Failed to send token: " + response.code());
+                    Toast.makeText(context, "Error saving user", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("BackendAuth", "Error: " + t.getMessage());
+                Toast.makeText(context, "Network error", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void navigateToNextScreen(String userType, Context context) {
+        Intent intent = "Member".equals(userType) ?
+                new Intent(context, MemberHomePageActivity.class) :
+                new Intent(context, OrganisationHomePageActivity.class);
+
+        context.startActivity(intent);
     }
 }

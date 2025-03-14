@@ -5,7 +5,7 @@ public class User {
     private String id;
     private String username;
     private String name;
-    private String contactEmail;
+    private String email;
     private String userType;
 
 
@@ -33,12 +33,12 @@ public class User {
         this.name = name;
     }
 
-    public String getContactEmail() {
-        return contactEmail;
+    public String getEmail() {
+        return email;
     }
 
-    public void setContactEmail(String contactEmail) {
-        this.contactEmail = contactEmail;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
 
