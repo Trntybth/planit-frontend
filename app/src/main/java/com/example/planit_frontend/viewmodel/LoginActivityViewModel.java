@@ -56,7 +56,11 @@ public class LoginActivityViewModel extends AndroidViewModel {
 
     public void saveUserToBackend(String username, String userType, Context context) {
 
-
+        // Check if username is empty or null
+        if (username == null || username.trim().isEmpty()) {
+            Toast.makeText(context, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+            return;  // Exit the method early if username is invalid
+        }
         GoogleSignInAccount googleAccount = GoogleSignIn.getLastSignedInAccount(context);
 
         if (googleAccount != null) {
