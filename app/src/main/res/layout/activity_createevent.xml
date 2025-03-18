@@ -27,5 +27,15 @@
         app:layout_constraintStart_toEndOf="@id/PlanItLogo"
         app:layout_constraintTop_toTopOf="@id/PlanItLogo" />
 
-
+    <!-- New Button for creating a new event -->
+    <Button
+        android:id="@+id/createEventButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30dp"
+        android:layout_marginBottom="40dp"
+        android:text="Create Event"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
