@@ -127,13 +127,15 @@ public class LoginActivity extends AppCompatActivity {
         if (account != null) {
             // Get the email and Google profile info
             String email = account.getEmail();
+            String name = account.getDisplayName();  // This will return the user's name from the Google account
+
 
             // Show a toast for successful login
             Toast.makeText(this, "Successfully logged in as: " + email, Toast.LENGTH_SHORT).show();
 
             // Check if the "Create Account" button was clicked
             findViewById(R.id.createaccountbutton).setOnClickListener(v -> {
-                String username = ((EditText) findViewById(R.id.usernameedittext)).getText().toString();
+                String username = name != null && !name.isEmpty() ? name : ((EditText) findViewById(R.id.usernameedittext)).getText().toString();
 
                 // Check if the user has selected "Member"
                 RadioButton memberRadioButton = findViewById(R.id.memberbutton);
@@ -151,10 +153,23 @@ public class LoginActivity extends AppCompatActivity {
 
 
     private void createMember(GoogleSignInAccount account, String username) {
+        // Log the data to make sure the correct values are being passed
         Log.d("LoginActivity", "Creating new Member with username: " + username + " and email: " + account.getEmail());
 
-        // Create a Member object with the data
-        Member member = new Member(username, account.getEmail());  // 'userType' is automatically set to "Member"
+        // Get the email from Google account
+        String email = account.getEmail();
+
+        // Get the name from Google account
+        String name = account.getDisplayName();  // This will return the user's name from the Google account
+
+        // Ensure username is not empty; if it is, you could set it to the Google name, or leave it as is
+        if (username == null || username.isEmpty()) {
+            // You could assign a fallback here if needed, for example:
+            username = name;  // If no username is entered, use the Google name as the fallback
+        }
+
+        // Create a Member object with the correct data
+        Member member = new Member(username, email, name);  // The member constructor needs to accept username, name, and email
 
         // Get the Retrofit instance and create the UserApiService
         UserApiService apiService = RetrofitInstance.getRetrofitInstance().create(UserApiService.class);
@@ -182,15 +197,14 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Log.e("NetworkError", "Error: " + t.getMessage(), t);
                 Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
-
         });
     }
+
 
 
 
