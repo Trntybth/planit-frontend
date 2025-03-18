@@ -27,7 +27,7 @@
     <!-- New Button for creating a new event -->
 
     <Button
-        android:id="@+id/createEventButton"
+        android:id="@+id/createNewEventButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textSize="30dp"
