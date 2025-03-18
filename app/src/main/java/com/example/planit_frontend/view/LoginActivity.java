@@ -26,6 +26,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 
+import java.io.IOException;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -166,10 +168,20 @@ public class LoginActivity extends AppCompatActivity {
                     // Member was created successfully, navigate to Member's home page
                     goToMemberHomePage();
                 } else {
-                    // Handle error (e.g., show error message)
+                    // Log response for better error handling
+                    Log.e("LoginActivity", "Failed to create Member, response code: " + response.code());
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorResponse = response.errorBody().string();
+                            Log.e("LoginActivity", "Error response: " + errorResponse);
+                        } catch (IOException e) {
+                            Log.e("LoginActivity", "Error reading the error body", e);
+                        }
+                    }
                     Toast.makeText(LoginActivity.this, "Failed to create Member", Toast.LENGTH_SHORT).show();
                 }
             }
+
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
