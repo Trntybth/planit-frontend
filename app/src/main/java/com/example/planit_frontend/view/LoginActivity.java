@@ -162,10 +162,10 @@ public class LoginActivity extends AppCompatActivity {
         // Get the name from Google account
         String name = account.getDisplayName();  // This will return the user's name from the Google account
 
-        // Ensure username is not empty; if it is, you could set it to the Google name, or leave it as is
+        // Ensure username is not empty
         if (username == null || username.isEmpty()) {
-            // You could assign a fallback here if needed, for example:
-            username = name;  // If no username is entered, use the Google name as the fallback
+            // Fallback: Generate a random username
+            username = generateRandomUsername();  // Call method to generate a random username
         }
 
         // Create a Member object with the correct data
@@ -231,4 +231,20 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
         finish();
     }
+
+    // Method to generate a random username
+    private String generateRandomUsername() {
+        // Define the characters to use in the username
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder username = new StringBuilder();
+
+        // Generate a random username of a desired length (e.g., 8 characters)
+        for (int i = 0; i < 8; i++) {
+            int randomIndex = (int) (Math.random() * characters.length());
+            username.append(characters.charAt(randomIndex));
+        }
+
+        return username.toString();  // Return the generated random username
+    }
+
 }
