@@ -17,6 +17,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.example.planit_frontend.R;
 import com.example.planit_frontend.model.Member;
+import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.UserApiService;
 import com.example.planit_frontend.viewmodel.LoginActivityViewModel;
@@ -168,6 +169,7 @@ public class LoginActivity extends AppCompatActivity {
             username = generateRandomUsername();  // Call method to generate a random username
         }
 
+
         // Create a Member object with the correct data
         Member member = new Member(username, email, name);  // The member constructor needs to accept username, name, and email
 
@@ -206,17 +208,59 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
+    private void createOrganisation(GoogleSignInAccount account, String orgName) {
+        // Log the data to make sure the correct values are being passed
+        Log.d("LoginActivity", "Creating new Organization with name: " + orgName + " and email: " + account.getEmail());
 
+        // Get the email from Google account
+        String email = account.getEmail();
 
-    private void createOrganisation(GoogleSignInAccount account, String username) {
-        // Logic to create a new Organisation in your backend or database
-        Log.d("LoginActivity", "Creating new Organisation with username: " + username + " and email: " + account.getEmail());
-        // Example: send the data to your backend API to save this Organisation
-        // Organisation organisation = new Organisation(username, account.getEmail());
-        // sendToBackend(organisation);
-        // Navigate to Organisation's home page
-        goToOrganisationHomePage();
+        // Get the name from Google account
+        String name = account.getDisplayName();  // This will return the user's name from the Google account
+
+        // Ensure orgName is not empty
+        if (orgName == null || orgName.isEmpty()) {
+            // Fallback: Generate a random organization name (if needed)
+            orgName = generateRandomUsername();  // Call method to generate a random organization name if necessary
+        }
+
+        // Create an Organization object with the correct data
+        Organisation organization = new Organisation(orgName, email, name);  // The organization constructor needs to accept orgName, name, and email
+
+        // Get the Retrofit instance and create the OrganizationApiService
+        UserApiService apiService = RetrofitInstance.getRetrofitInstance().create(UserApiService.class);
+
+        // Make the network call asynchronously
+        Call<Void> call = apiService.createOrganisation(organization);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    // Organization was created successfully, navigate to Organization's home page
+                    goToOrganisationHomePage();
+                } else {
+                    // Log response for better error handling
+                    Log.e("LoginActivity", "Failed to create Organization, response code: " + response.code());
+                    if (response.errorBody() != null) {
+                        try {
+                            String errorResponse = response.errorBody().string();
+                            Log.e("LoginActivity", "Error response: " + errorResponse);
+                        } catch (IOException e) {
+                            Log.e("LoginActivity", "Error reading the error body", e);
+                        }
+                    }
+                    Toast.makeText(LoginActivity.this, "Failed to create Organization", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("NetworkError", "Error: " + t.getMessage(), t);
+                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
+
 
 
     private void goToMemberHomePage() {
