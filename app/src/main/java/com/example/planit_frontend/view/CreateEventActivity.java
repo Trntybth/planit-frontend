@@ -28,6 +28,13 @@ public class CreateEventActivity extends AppCompatActivity {
 
         // Set the content view to the layout for creating an event
         setContentView(R.layout.activity_createevent);
+
+        // Initialize the views
+        eventDateTextView = findViewById(R.id.eventDateTextView); // Make sure you have this ID in your XML layout
+        selectDateButton = findViewById(R.id.selectDateButton); // Ensure this ID is correct in your XML
+
+        // Set the onClickListener for the button
+        selectDateButton.setOnClickListener(v -> showDatePickerDialog());
     }
 
 
