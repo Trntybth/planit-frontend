@@ -82,18 +82,6 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // Google Sign-In Button click listener
-        findViewById(R.id.sign_in_button).setOnClickListener(v -> {
-            GoogleSignInAccount signedInAccount = GoogleSignIn.getLastSignedInAccount(this);
-            if (signedInAccount != null) {
-                // If already signed in, proceed to the next step
-                handleSignIn(signedInAccount);
-            } else {
-                // If not signed in, start the sign-in process
-                Intent signInIntent = googleSignInClient.getSignInIntent();
-                signInLauncher.launch(signInIntent);
-            }
-        });
-
         // Create Account Button click listener
         findViewById(R.id.createaccountbutton).setOnClickListener(v -> {
             Log.d("LoginActivity", "Create account button clicked");
@@ -124,7 +112,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-    private void handleSignIn(GoogleSignInAccount account) {
+
+        private void handleSignIn(GoogleSignInAccount account) {
         if (account != null) {
             // Get the email and Google profile info
             String email = account.getEmail();
