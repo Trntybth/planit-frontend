@@ -6,6 +6,7 @@
 
     <ImageView
         android:id="@+id/PlanItLogo"
+        android:layout_marginTop="40dp"
         android:layout_width="110dp"
         android:layout_height="110dp"
         android:src="@drawable/ogplant"

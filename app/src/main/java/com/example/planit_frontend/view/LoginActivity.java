@@ -4,13 +4,11 @@ package com.example.planit_frontend.view;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
@@ -19,7 +17,7 @@ import com.example.planit_frontend.R;
 import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
-import com.example.planit_frontend.model.UserApiService;
+import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.viewmodel.LoginActivityViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -163,7 +161,7 @@ public class LoginActivity extends AppCompatActivity {
         Member member = new Member(username, email, name);  // The member constructor needs to accept username, name, and email
 
         // Get the Retrofit instance and create the UserApiService
-        UserApiService apiService = RetrofitInstance.getRetrofitInstance().create(UserApiService.class);
+        ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
         // Make the network call asynchronously
         Call<Void> call = apiService.createMember(member);
@@ -217,7 +215,7 @@ public class LoginActivity extends AppCompatActivity {
         Organisation organization = new Organisation(orgName, email, name);  // The organization constructor needs to accept orgName, name, and email
 
         // Get the Retrofit instance and create the OrganizationApiService
-        UserApiService apiService = RetrofitInstance.getRetrofitInstance().create(UserApiService.class);
+        ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
         // Make the network call asynchronously
         Call<Void> call = apiService.createOrganisation(organization);
