@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_marginTop="80dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.SignupActivity">
+
+    <ImageView
+        android:id="@+id/PlanItLogo"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:src="@drawable/ogplant"
+        app:layout_constraintBottom_toTopOf="@id/sign_in_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.2" />
+
+    <TextView
+        android:id="@+id/sign_in_text"
+        android:textSize="18sp"
+        android:fontFamily="monospace"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Please sign up with google."
+        android:textColor="@color/purpledark"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/PlanItLogo"
+        app:layout_constraintBottom_toTopOf="@id/sign_in_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingTop="20dp"
+        android:paddingBottom="10dp" />
+
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/sign_in_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/sign_in_text"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="visible" />
+
+    <TextView
+        android:id="@+id/account_details_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select your account details."
+        android:textColor="@color/purpledark"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/sign_in_button"
+        app:layout_constraintBottom_toTopOf="@id/userTypeRadioGroup"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingTop="20dp"
+        android:paddingBottom="10dp" />
+
+    <RadioGroup
+        android:id="@+id/userTypeRadioGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/account_details_text"
+        app:layout_constraintBottom_toTopOf="@id/usernameedittext"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RadioButton
+            android:id="@+id/memberbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="Member"
+            android:textSize="20sp"
+            android:layout_marginBottom="10dp"/>
+
+        <RadioButton
+            android:id="@+id/organisationbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="Organisation"
+            android:textSize="20sp"
+            android:layout_marginTop="10dp"/>
+    </RadioGroup>
+
+    <EditText
+        android:id="@+id/usernameedittext"
+        android:hint="Enter username"
+        android:textColor="@color/purpledark"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textSize="18sp"
+        android:inputType="text"
+        app:layout_constraintTop_toBottomOf="@id/userTypeRadioGroup"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.8"
+        android:fontFamily="sans-serif" />
+
+    <Button
+        android:id="@+id/createaccountbutton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Create Account"
+        android:fontFamily="monospace"
+        app:layout_constraintTop_toBottomOf="@id/usernameedittext"
+        android:layout_marginTop="30dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/sign_in_redirect_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="monospace"
+        android:backgroundTint="@color/purpledark"
+        android:text="Already got an account? Sign in here"
+        app:layout_constraintTop_toBottomOf="@id/createaccountbutton"
+        android:layout_marginTop="10dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
