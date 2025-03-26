@@ -28,7 +28,8 @@
         <activity android:name=".view.OrganisationHomePageActivity" />
         <activity android:name=".view.SignupActivity"/>
         <activity android:name=".view.CreateEventActivity" />
-        />
+        <activity android:name=".view.LoginActivity"/>
+            />
 
     </application>
 

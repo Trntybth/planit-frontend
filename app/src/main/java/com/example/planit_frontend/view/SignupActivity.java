@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
@@ -80,6 +82,17 @@ public class SignupActivity extends AppCompatActivity {
         if (account != null) {
             handleSignIn(account);  // Sign-in already done, proceed with member creation
         }
+
+        // Find the button
+        Button signInRedirectButton = findViewById(R.id.sign_in_redirect_button);
+        signInRedirectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Redirect to LoginActivity
+                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+                startActivity(intent);
+            }
+        });
 
         // Google Sign-In Button click listener
         // Create Account Button click listener
