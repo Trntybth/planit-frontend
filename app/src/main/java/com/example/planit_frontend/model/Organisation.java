@@ -1,5 +1,11 @@
 package com.example.planit_frontend.model;
 
+import static android.content.Context.MODE_PRIVATE;
+
+import android.content.SharedPreferences;
+
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,4 +37,6 @@ public class Organisation extends User {
         this.setUserType("Organisation");  // Set user type to "Organisation"
         this.eventsCreated = new ArrayList<>();  // Initialize with an empty list
     }
+
+
 }

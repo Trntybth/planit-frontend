@@ -1,6 +1,7 @@
 package com.example.planit_frontend.view;
 
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
@@ -24,6 +25,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
+import com.google.gson.Gson;
 
 import java.io.IOException;
 
@@ -31,7 +33,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class LoginActivity extends AppCompatActivity {
+public class SignupActivity extends AppCompatActivity {
 
     private LoginActivityViewModel loginActivityViewModel;
     private GoogleSignInClient googleSignInClient;
@@ -110,7 +112,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 
-
         private void handleSignIn(GoogleSignInAccount account) {
         if (account != null) {
             // Get the email and Google profile info
@@ -182,14 +183,14 @@ public class LoginActivity extends AppCompatActivity {
                             Log.e("LoginActivity", "Error reading the error body", e);
                         }
                     }
-                    Toast.makeText(LoginActivity.this, "Failed to create Member", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignupActivity.this, "Failed to create Member", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Log.e("NetworkError", "Error: " + t.getMessage(), t);
-                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -214,6 +215,16 @@ public class LoginActivity extends AppCompatActivity {
         // Create an Organization object with the correct data
         Organisation organization = new Organisation(orgName, email, name);  // The organization constructor needs to accept orgName, name, and email
 
+        // Serialize the Organisation object to JSON
+        Gson gson = new Gson();
+        String organisationJson = gson.toJson(organization);
+
+        // Store the serialized Organisation in SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("organisation", organisationJson);
+        editor.apply();
+
         // Get the Retrofit instance and create the OrganizationApiService
         ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
@@ -236,18 +247,29 @@ public class LoginActivity extends AppCompatActivity {
                             Log.e("LoginActivity", "Error reading the error body", e);
                         }
                     }
-                    Toast.makeText(LoginActivity.this, "Failed to create Organization", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignupActivity.this, "Failed to create Organization", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
                 Log.e("NetworkError", "Error: " + t.getMessage(), t);
-                Toast.makeText(LoginActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    private Organisation getStoredOrganisation() {
+        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        String organisationJson = sharedPreferences.getString("organisation", null);
+
+        if (organisationJson != null) {
+            Gson gson = new Gson();
+            return gson.fromJson(organisationJson, Organisation.class);
+        } else {
+            return null;  // Or handle the case when no Organisation is stored
+        }
+    }
 
 
     private void goToMemberHomePage() {

@@ -2,8 +2,6 @@ package com.example.planit_frontend.view;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
@@ -46,7 +44,7 @@ public class WelcomePageActivity extends AppCompatActivity {
         } else if ("Organisation".equals(userType)) {
             startActivity(new Intent(this, OrganisationHomePageActivity.class));
         } else {
-            startActivity(new Intent(this, LoginActivity.class));
+            startActivity(new Intent(this, SignupActivity.class));
         }
         finish(); // Close WelcomePageActivity
     }

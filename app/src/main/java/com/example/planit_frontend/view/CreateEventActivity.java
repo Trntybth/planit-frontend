@@ -1,6 +1,7 @@
 package com.example.planit_frontend.view;
 
 import android.app.DatePickerDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -73,6 +74,17 @@ public class CreateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
+    private Organisation getStoredOrganisation() {
+        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        String organisationJson = sharedPreferences.getString("organisation", null);
+
+        if (organisationJson != null) {
+            Gson gson = new Gson();
+            return gson.fromJson(organisationJson, Organisation.class);
+        } else {
+            return null;  // Or handle the case when no Organisation is stored
+        }
+    }
     private void saveEventToDatabase() {
         String name = eventName.getText().toString().trim();
         String description = eventDescription.getText().toString().trim();
@@ -85,19 +97,17 @@ public class CreateEventActivity extends AppCompatActivity {
 
         // Get the selected date as a string from the TextView
         String dateString = eventDateTextView.getText().toString();
+        Organisation creator = getStoredOrganisation();
+        if (creator == null) {
+            Toast.makeText(this, "No organisation found", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
         if (account == null) {
             Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // Retrieve google info
-        String userEmail = account.getEmail();
-        String displayName = account.getDisplayName();
-
-        // Pass all three parameters to the Organisation constructor to save the 'creator'
-        Organisation creator = new Organisation(displayName, userEmail);
 
         // create event with dateString instead of LocalDate
         Event event = new Event(name, description, location, creator, dateString);  // Pass dateString (not LocalDate)

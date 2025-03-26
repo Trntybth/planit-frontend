@@ -26,7 +26,7 @@
         </activity>
         <activity android:name=".view.MemberHomePageActivity" />
         <activity android:name=".view.OrganisationHomePageActivity" />
-        <activity android:name=".view.LoginActivity"/>
+        <activity android:name=".view.SignupActivity"/>
         <activity android:name=".view.CreateEventActivity" />
         />
 
