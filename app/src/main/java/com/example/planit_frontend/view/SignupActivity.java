@@ -210,6 +210,10 @@ public class SignupActivity extends AppCompatActivity {
 
 
     private void createOrganisation(GoogleSignInAccount account, String orgName) {
+        if (account == null) {
+            Toast.makeText(this, "Google Sign-In account is null. Please sign in again.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         // Log the data to make sure the correct values are being passed
         Log.d("LoginActivity", "Creating new Organization with name: " + orgName + " and email: " + account.getEmail());
 
@@ -247,26 +251,26 @@ public class SignupActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 if (response.isSuccessful()) {
-                    // Organization was created successfully, navigate to Organization's home page
+                    // Successfully created the organisation
                     goToOrganisationHomePage();
                 } else {
-                    // Log response for better error handling
-                    Log.e("LoginActivity", "Failed to create Organization, response code: " + response.code());
+                    // Log the error response for better debugging
+                    Log.e("APIError", "Failed to create Organization, response code: " + response.code());
                     if (response.errorBody() != null) {
                         try {
                             String errorResponse = response.errorBody().string();
-                            Log.e("LoginActivity", "Error response: " + errorResponse);
+                            Log.e("APIError", "Error response: " + errorResponse);
                         } catch (IOException e) {
-                            Log.e("LoginActivity", "Error reading the error body", e);
+                            Log.e("APIError", "Error reading the error body", e);
                         }
                     }
-                    Toast.makeText(SignupActivity.this, "Failed to create Organization", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SignupActivity.this, "Failed to create Organisation. Try again.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("NetworkError", "Error: " + t.getMessage(), t);
+                Log.e("NetworkError", "Network error: " + t.getMessage(), t);
                 Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -278,9 +282,16 @@ public class SignupActivity extends AppCompatActivity {
 
         if (organisationJson != null) {
             Gson gson = new Gson();
-            return gson.fromJson(organisationJson, Organisation.class);
+            Organisation organisation = gson.fromJson(organisationJson, Organisation.class);
+            if (organisation != null) {
+                return organisation;
+            } else {
+                Log.e("SharedPreferences", "Failed to deserialize Organisation object.");
+                return null;  // Handle invalid or corrupted data.
+            }
         } else {
-            return null;  // Or handle the case when no Organisation is stored
+            Log.e("SharedPreferences", "No organisation data found in SharedPreferences.");
+            return null;  // Handle case where no data is stored.
         }
     }
 
