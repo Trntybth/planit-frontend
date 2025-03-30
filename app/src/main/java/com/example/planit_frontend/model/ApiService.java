@@ -30,5 +30,12 @@ public interface ApiService {
     @POST("events")
     Call<Event> createEvent(@Body Event event);
 
+    @GET("users/check-member")
+    Call<Boolean> checkMemberExists(@Query("email") String email, @Query("username") String username);
+
+    @GET("users/check-organisation")
+    Call<Boolean> checkOrganisationExists(@Query("email") String email, @Query("username") String username);
+
+
 
 }

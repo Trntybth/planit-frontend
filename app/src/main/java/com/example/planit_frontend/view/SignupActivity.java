@@ -155,126 +155,109 @@ public class SignupActivity extends AppCompatActivity {
 
 
     private void createMember(GoogleSignInAccount account, String username) {
-        // Log the data to make sure the correct values are being passed
-        Log.d("LoginActivity", "Creating new Member with username: " + username + " and email: " + account.getEmail());
-
-        // Get the email from Google account
-        String email = account.getEmail();
-
-        // Get the name from Google account
-        String name = account.getDisplayName();  // This will return the user's name from the Google account
-
-        // Ensure username is not empty
-        if (username == null || username.isEmpty()) {
-            // Fallback: Generate a random username
-            username = generateRandomUsername();  // Call method to generate a random username
+        if (account == null || account.getEmail() == null) {
+            Toast.makeText(SignupActivity.this, "Google account details are missing!", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-
-        // Create a Member object with the correct data
-        Member member = new Member(username, email, name);  // The member constructor needs to accept username, name, and email
-
-        // Get the Retrofit instance and create the UserApiService
+        String email = account.getEmail();
         ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
-        // Make the network call asynchronously
-        Call<Void> call = apiService.createMember(member);
-        call.enqueue(new Callback<Void>() {
+        // First, check if the member already exists
+        apiService.checkMemberExists(email, username).enqueue(new Callback<Boolean>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    // Member was created successfully, navigate to Member's home page
-                    goToMemberHomePage();
+            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                if (response.isSuccessful() && Boolean.TRUE.equals(response.body())) {
+                    // Member already exists
+                    Toast.makeText(SignupActivity.this, "Username or Email already taken!", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Log response for better error handling
-                    Log.e("LoginActivity", "Failed to create Member, response code: " + response.code());
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorResponse = response.errorBody().string();
-                            Log.e("LoginActivity", "Error response: " + errorResponse);
-                        } catch (IOException e) {
-                            Log.e("LoginActivity", "Error reading the error body", e);
+                    // Proceed with creating the member
+                    String displayName = account.getDisplayName() != null ? account.getDisplayName() : username;
+                    Member member = new Member(username, email, displayName);
+
+                    apiService.createMember(member).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                goToMemberHomePage();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Failed to create Member", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
-                    Toast.makeText(SignupActivity.this, "Failed to create Member", Toast.LENGTH_SHORT).show();
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            Toast.makeText(SignupActivity.this, "Network error: " + t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("NetworkError", "Error: " + t.getMessage(), t);
-                Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<Boolean> call, Throwable t) {
+                Toast.makeText(SignupActivity.this, "Network error: " + t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+
 
 
     private void createOrganisation(GoogleSignInAccount account, String orgName) {
-        if (account == null) {
-            Toast.makeText(this, "Google Sign-In account is null. Please sign in again.", Toast.LENGTH_SHORT).show();
+        if (account == null || account.getEmail() == null) {
+            Toast.makeText(this, "Google Sign-In account is missing!", Toast.LENGTH_SHORT).show();
             return;
         }
-        // Log the data to make sure the correct values are being passed
-        Log.d("LoginActivity", "Creating new Organization with name: " + orgName + " and email: " + account.getEmail());
 
-        // Get the email from Google account
         String email = account.getEmail();
-
-        // Get the name from Google account
-        String name = account.getDisplayName();  // This will return the user's name from the Google account
+        String displayName = account.getDisplayName();
 
         // Ensure orgName is not empty
-        if (orgName == null || orgName.isEmpty()) {
-            // Fallback: Generate a random organization name (if needed)
-            orgName = generateRandomUsername();  // Call method to generate a random organization name if necessary
-        }
+        final String finalOrgName = (orgName == null || orgName.isEmpty()) ? generateRandomUsername() : orgName;
 
-        // Create an Organization object with the correct data
-        Organisation organization = new Organisation(orgName, email, name);  // The organization constructor needs to accept orgName, name, and email
-
-        // Serialize the Organisation object to JSON
-        Gson gson = new Gson();
-        String organisationJson = gson.toJson(organization);
-
-        // Store the serialized Organisation in SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("organisation", organisationJson);
-        editor.apply();
-
-        // Get the Retrofit instance and create the OrganizationApiService
         ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
-        // Make the network call asynchronously
-        Call<Void> call = apiService.createOrganisation(organization);
-        call.enqueue(new Callback<Void>() {
+        // Check if the organisation already exists
+        apiService.checkOrganisationExists(email, finalOrgName).enqueue(new Callback<Boolean>() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                if (response.isSuccessful()) {
-                    // Successfully created the organisation
-                    goToOrganisationHomePage();
+            public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                if (response.isSuccessful() && Boolean.TRUE.equals(response.body())) {
+                    Toast.makeText(SignupActivity.this, "Organisation name or email already taken!", Toast.LENGTH_SHORT).show();
                 } else {
-                    // Log the error response for better debugging
-                    Log.e("APIError", "Failed to create Organization, response code: " + response.code());
-                    if (response.errorBody() != null) {
-                        try {
-                            String errorResponse = response.errorBody().string();
-                            Log.e("APIError", "Error response: " + errorResponse);
-                        } catch (IOException e) {
-                            Log.e("APIError", "Error reading the error body", e);
+                    // Proceed with organisation creation
+                    Organisation organisation = new Organisation(finalOrgName, email, displayName);
+
+                    // Store organisation data in SharedPreferences
+                    Gson gson = new Gson();
+                    SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+                    sharedPreferences.edit().putString("organisation", gson.toJson(organisation)).apply();
+
+                    apiService.createOrganisation(organisation).enqueue(new Callback<Void>() {
+                        @Override
+                        public void onResponse(Call<Void> call, Response<Void> response) {
+                            if (response.isSuccessful()) {
+                                goToOrganisationHomePage();
+                            } else {
+                                Toast.makeText(SignupActivity.this, "Failed to create Organisation. Try again.", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
-                    Toast.makeText(SignupActivity.this, "Failed to create Organisation. Try again.", Toast.LENGTH_SHORT).show();
+
+                        @Override
+                        public void onFailure(Call<Void> call, Throwable t) {
+                            Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                Log.e("NetworkError", "Network error: " + t.getMessage(), t);
-                Toast.makeText(SignupActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<Boolean> call, Throwable t) {
+                Toast.makeText(SignupActivity.this, "Network error: " + t.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
+
 
     private Organisation getStoredOrganisation() {
         SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
