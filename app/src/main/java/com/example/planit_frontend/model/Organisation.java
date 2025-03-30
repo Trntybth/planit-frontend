@@ -12,7 +12,7 @@ import java.util.List;
 public class Organisation extends User {
     private List<Event> eventsCreated;
 
-    // getter amd setter
+    // getter and setter
     public List<Event> getEventsCreated() {
         return eventsCreated;
     }

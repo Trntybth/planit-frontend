@@ -1,7 +1,6 @@
 package com.example.planit_frontend.view;
 
 import android.app.DatePickerDialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -12,16 +11,15 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.planit_frontend.R;
-import com.example.planit_frontend.model.Event; // Use your custom Event model
+import com.example.planit_frontend.model.Event;
+import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.ApiService;
+import com.example.planit_frontend.model.SessionManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.gson.Gson;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -29,15 +27,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
 public class CreateEventActivity extends AppCompatActivity {
 
     private EditText eventName, eventDescription, eventLocation;
     private TextView eventDateTextView;
     private Button selectDateButton, createEventButton;
     private ApiService userApiService;
-    private String selectedDate;
 
+    // Initialize SessionManager
+    SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +48,9 @@ public class CreateEventActivity extends AppCompatActivity {
         eventDateTextView = findViewById(R.id.eventDateTextView);
         selectDateButton = findViewById(R.id.selectDateButton);
         createEventButton = findViewById(R.id.createEventButton);
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         userApiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
@@ -75,17 +76,14 @@ public class CreateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private Organisation getStoredOrganisation() {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        String organisationJson = sharedPreferences.getString("organisation", null);
-
-        if (organisationJson != null) {
-            Gson gson = new Gson();
-            return gson.fromJson(organisationJson, Organisation.class);
-        } else {
-            return null;  // Or handle the case when no Organisation is stored
-        }
+    private Member getActiveMember() {
+        return sessionManager.getActiveMember();  // Use SessionManager to retrieve the active member
     }
+
+    private Organisation getActiveOrganisation() {
+        return sessionManager.getActiveOrganisation();  // Use SessionManager to retrieve the active organisation
+    }
+
     private void saveEventToDatabase() {
         String name = eventName.getText().toString().trim();
         String description = eventDescription.getText().toString().trim();
@@ -98,7 +96,7 @@ public class CreateEventActivity extends AppCompatActivity {
 
         // Get the selected date as a string
         String dateString = eventDateTextView.getText().toString();
-        Organisation creator = getStoredOrganisation();
+        Organisation creator = getActiveOrganisation();
         if (creator == null) {
             Toast.makeText(this, "No organisation found", Toast.LENGTH_SHORT).show();
             return;
@@ -137,21 +135,17 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private void addEventToStoredOrganisation(Event event) {
-        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
-        String organisationJson = sharedPreferences.getString("organisation", null);
+        Organisation organisation = getActiveOrganisation();
 
-        if (organisationJson != null) {
-            Gson gson = new Gson();
-            Organisation organisation = gson.fromJson(organisationJson, Organisation.class);
-
+        if (organisation != null) {
             // Add the new event to the list
             if (organisation.getEventsCreated() == null) {
                 organisation.setEventsCreated(new ArrayList<>());
             }
             organisation.getEventsCreated().add(event);
 
-            // Save updated organisation back to SharedPreferences
-            sharedPreferences.edit().putString("organisation", gson.toJson(organisation)).apply();
+            // Save updated organisation back to SessionManager
+            sessionManager.saveActiveOrganisation(organisation);  // Use saveActiveOrganisation instead of saveOrganisation
         }
     }
 

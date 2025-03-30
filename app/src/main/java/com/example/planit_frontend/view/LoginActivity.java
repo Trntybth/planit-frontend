@@ -13,6 +13,7 @@ import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
+import com.example.planit_frontend.model.SessionManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -28,6 +29,7 @@ public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInOptions gso;
     private ApiService apiService;
+    private SessionManager sessionManager;  // Add SessionManager instance
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,9 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize ApiService using RetrofitInstance
         apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+
+        // Initialize SessionManager
+        sessionManager = new SessionManager(this);
 
         // Set up sign-in button click listener
         findViewById(R.id.sign_in_button).setOnClickListener(view -> signIn());
@@ -87,8 +92,8 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d("LoginActivity", "Member response body: " + response.body()); // Log the response body
 
                 if (response.isSuccessful() && response.body() != null) {
-                    // If Member found, save and proceed
-                    setActiveMember(response.body());
+                    // If Member found, save and proceed using SessionManager
+                    sessionManager.saveActiveMember(response.body());
                     Toast.makeText(LoginActivity.this, "Member login successful", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, MemberHomePageActivity.class));
                 } else {
@@ -117,8 +122,8 @@ public class LoginActivity extends AppCompatActivity {
                 Log.d("LoginActivity", "Organisation response body: " + response.body()); // Log the response body
 
                 if (response.isSuccessful() && response.body() != null) {
-                    // If Organisation found, save and proceed
-                    setActiveOrganisation(response.body());
+                    // If Organisation found, save and proceed using SessionManager
+                    sessionManager.saveActiveOrganisation(response.body());
                     Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
                 } else {
@@ -132,22 +137,5 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(LoginActivity.this, "Error checking Organisation", Toast.LENGTH_SHORT).show();
             }
         });
-    }
-    private void setActiveMember(Member member) {
-        // Convert the member object to JSON and save it
-        String memberJson = new Gson().toJson(member);
-        getSharedPreferences("user_session", MODE_PRIVATE).edit()
-                .putString("active_user", memberJson)
-                .putString("active_user_type", "Member")
-                .apply();
-    }
-
-    private void setActiveOrganisation(Organisation organisation) {
-        // Convert the organisation object to JSON and save it
-        String organisationJson = new Gson().toJson(organisation);
-        getSharedPreferences("user_session", MODE_PRIVATE).edit()
-                .putString("active_user", organisationJson)
-                .putString("active_user_type", "Organisation")
-                .apply();
     }
 }
