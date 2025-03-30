@@ -27,7 +27,6 @@ import com.google.gson.Gson;  // Import Gson for JSON conversion
 public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInOptions gso;
-
     private ApiService apiService;
 
     @Override
@@ -65,8 +64,8 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         GoogleSignInAccount account = task.getResult();
                         if (account != null) {
-                            // Check if the user exists in the database
-                            checkUserInDatabase(account.getEmail());
+                            // Now use the new methods to check if the user exists as a Member or Organisation
+                            checkMemberInDatabase(account.getEmail());
                         }
                     } else {
                         // Google Sign-In failed, display a message
@@ -77,19 +76,24 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void checkUserInDatabase(String email) {
-        // Call your API to check if the user exists as a Member
-        Call<Member> memberCall = apiService.getUserByEmail(email);
+    private void checkMemberInDatabase(String email) {
+        Log.d("LoginActivity", "Checking Member with email: " + email);  // Log the email
+        // First, check if the user is a Member
+        Call<Member> memberCall = apiService.getMemberByEmail(email);
         memberCall.enqueue(new Callback<Member>() {
             @Override
             public void onResponse(Call<Member> call, Response<Member> response) {
+                Log.d("LoginActivity", "Member response code: " + response.code()); // Log response code
+                Log.d("LoginActivity", "Member response body: " + response.body()); // Log the response body
+
                 if (response.isSuccessful() && response.body() != null) {
-                    // Member found, set active member and navigate
+                    // If Member found, save and proceed
                     setActiveMember(response.body());
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Member login successful", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, MemberHomePageActivity.class));
                 } else {
-                    // If member is not found, check for Organisation
+                    // If no Member, check if the user is an Organisation
+                    Log.d("LoginActivity", "Member not found, checking Organisation...");
                     checkOrganisationInDatabase(email);
                 }
             }
@@ -103,15 +107,19 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkOrganisationInDatabase(String email) {
-        // Call your API to check if the user is an Organisation
+        Log.d("LoginActivity", "Checking Organisation with email: " + email);  // Log the email
+        // Check if the user is an Organisation
         Call<Organisation> organisationCall = apiService.getOrganisationByEmail(email);
         organisationCall.enqueue(new Callback<Organisation>() {
             @Override
             public void onResponse(Call<Organisation> call, Response<Organisation> response) {
+                Log.d("LoginActivity", "Organisation response code: " + response.code()); // Log response code
+                Log.d("LoginActivity", "Organisation response body: " + response.body()); // Log the response body
+
                 if (response.isSuccessful() && response.body() != null) {
-                    // Organisation found, set active organisation and navigate
+                    // If Organisation found, save and proceed
                     setActiveOrganisation(response.body());
-                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
                     startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
                 } else {
                     Toast.makeText(LoginActivity.this, "No account found with this email.", Toast.LENGTH_SHORT).show();
@@ -125,7 +133,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
     }
-
     private void setActiveMember(Member member) {
         // Convert the member object to JSON and save it
         String memberJson = new Gson().toJson(member);

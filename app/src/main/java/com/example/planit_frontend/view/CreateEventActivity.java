@@ -22,6 +22,7 @@ import com.google.gson.Gson;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import retrofit2.Call;
@@ -95,7 +96,7 @@ public class CreateEventActivity extends AppCompatActivity {
             return;
         }
 
-        // Get the selected date as a string from the TextView
+        // Get the selected date as a string
         String dateString = eventDateTextView.getText().toString();
         Organisation creator = getStoredOrganisation();
         if (creator == null) {
@@ -109,20 +110,20 @@ public class CreateEventActivity extends AppCompatActivity {
             return;
         }
 
-        // create event with dateString instead of LocalDate
-        Event event = new Event(name, description, location, creator, dateString);  // Pass dateString (not LocalDate)
-        Gson gson = new Gson();
-        String eventJson = gson.toJson(event);
-        Log.d("CreateEvent", "Sending JSON: " + eventJson);
+        // Create event
+        Event event = new Event(name, description, location, creator, dateString);
 
         userApiService.createEvent(event).enqueue(new Callback<Event>() {
             @Override
             public void onResponse(Call<Event> call, Response<Event> response) {
                 if (response.isSuccessful()) {
                     Toast.makeText(CreateEventActivity.this, "Event Created!", Toast.LENGTH_SHORT).show();
+
+                    // ✅ Add event to stored Organisation's eventsCreated list
+                    addEventToStoredOrganisation(event);
+
                     finish();
                 } else {
-                    // Log the error response code and message for debugging
                     Toast.makeText(CreateEventActivity.this, "Failed to create event: " + response.code() + " " + response.message(), Toast.LENGTH_SHORT).show();
                     Log.e("CreateEvent", "Error code: " + response.code() + ", Message: " + response.message());
                 }
@@ -134,4 +135,24 @@ public class CreateEventActivity extends AppCompatActivity {
             }
         });
     }
+
+    private void addEventToStoredOrganisation(Event event) {
+        SharedPreferences sharedPreferences = getSharedPreferences("app_preferences", MODE_PRIVATE);
+        String organisationJson = sharedPreferences.getString("organisation", null);
+
+        if (organisationJson != null) {
+            Gson gson = new Gson();
+            Organisation organisation = gson.fromJson(organisationJson, Organisation.class);
+
+            // Add the new event to the list
+            if (organisation.getEventsCreated() == null) {
+                organisation.setEventsCreated(new ArrayList<>());
+            }
+            organisation.getEventsCreated().add(event);
+
+            // Save updated organisation back to SharedPreferences
+            sharedPreferences.edit().putString("organisation", gson.toJson(organisation)).apply();
+        }
+    }
+
 }

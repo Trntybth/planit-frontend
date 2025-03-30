@@ -1,5 +1,6 @@
 package com.example.planit_frontend.model;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
@@ -12,11 +13,6 @@ public interface ApiService {
 
     @GET("users/email/{email}")
     Call<Member> getUserByEmail(@Path("email") String email);
-
-
-    // Method to get an Organisation by email
-    @GET("organisations/email")  // Replace with your actual endpoint
-    Call<Organisation> getOrganisationByEmail(@Query("email") String email);
 
     @GET("check-email-exists")
     Call<Boolean> checkEmailExists(@Query("email") String email);
@@ -35,6 +31,15 @@ public interface ApiService {
 
     @GET("users/check-organisation")
     Call<Boolean> checkOrganisationExists(@Query("email") String email, @Query("username") String username);
+
+
+    // Check if the user is a Member by email
+    @GET("users/email/{email}")
+    Call<Member> getMemberByEmail(@Path("email") String email);
+
+    // Check if the user is an Organisation by email
+    @GET("users/email/{email}")
+    Call<Organisation> getOrganisationByEmail(@Path("email") String email);
 
 
 
