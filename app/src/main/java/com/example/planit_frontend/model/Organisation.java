@@ -31,13 +31,5 @@ public class Organisation extends User {
         this.eventsCreated = new ArrayList<>();  // Initialize with an empty list
     }
 
-    // no username constructor
-    public Organisation(String displayName, String email) {
-        this.setName(displayName);      // Set the username from user input
-        this.setEmail(email);     // Set the email from Google
-        this.setUserType("Organisation");  // Set user type to "Organisation"
-        this.eventsCreated = new ArrayList<>();  // Initialize with an empty list
-    }
-
 
 }

@@ -19,6 +19,7 @@ import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.SessionManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -159,6 +160,10 @@ public class CreateEventActivity extends AppCompatActivity {
 
             // Save the updated organisation back to SessionManager
             sessionManager.saveActiveOrganisation(organisation);
+
+            // Optionally, also save the events to SharedPreferences (if desired)
+            String eventsJson = new Gson().toJson(organisation.getEventsCreated());
+            sessionManager.saveEventsToSharedPreferences(eventsJson);  // Call your method to save to SharedPreferences
         } else {
             Log.e("CreateEvent", "No organisation found to add event");
         }

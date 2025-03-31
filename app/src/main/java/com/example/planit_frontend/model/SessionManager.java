@@ -5,7 +5,11 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.Map;
 
 public class SessionManager {
@@ -19,7 +23,7 @@ public class SessionManager {
         gson = new Gson();
     }
 
-    // Get the active user (either Member or Organisation) from SharedPreferences
+/*    // Get the active user (either Member or Organisation) from SharedPreferences
     public Object getActiveUser() {
         String userJson = sharedPreferences.getString("active_user", null);
         String userType = sharedPreferences.getString("active_user_type", null);
@@ -32,7 +36,7 @@ public class SessionManager {
             }
         }
         return null;  // Return null if no active user found
-    }
+    }*/
 
     // Get the active Member from SharedPreferences
     public Member getActiveMember() {
@@ -44,7 +48,7 @@ public class SessionManager {
     }
 
     public Organisation getActiveOrganisation() {
-        String organisationJson = sharedPreferences.getString("active_user", null);  // Check for "active_user" key
+        String organisationJson = sharedPreferences.getString("activeOrganisation", null);  // Updated key to match saving
 
         // Log all entries in SharedPreferences to see what is stored
         Map<String, ?> allEntries = sharedPreferences.getAll();
@@ -53,18 +57,13 @@ public class SessionManager {
         }
 
         if (organisationJson != null) {
-            // Assuming the stored data in "active_user" corresponds to the Organisation data
-            Organisation organisation = new Gson().fromJson(organisationJson, Organisation.class);  // Deserialize into Organisation
-
+            Organisation organisation = new Gson().fromJson(organisationJson, Organisation.class);
             return organisation;
         }
 
         Log.d("SessionManager", "No organisation found in session.");
         return null;
     }
-
-
-
 
 
     // Save the active Member to SharedPreferences
@@ -97,4 +96,42 @@ public class SessionManager {
     public void clearSession() {
         sharedPreferences.edit().clear().apply();
     }
+
+    // Retrieve activeOrganisation JSON string: You first retrieve the events from the activeOrganisation key.
+    // This key contains the eventsCreated list, so you need to treat this data as a JSON string.
+    public String getUserEvents() {
+        // Retrieve the JSON string of activeOrganisation
+        String organisationJson = sharedPreferences.getString("activeOrganisation", "");
+
+        if (organisationJson != null && !organisationJson.isEmpty()) {
+            try {
+                // Deserialize the activeOrganisation JSON into an Organisation object
+                Organisation organisation = new Gson().fromJson(organisationJson, Organisation.class);
+
+                // Retrieve the eventsCreated list from the Organisation object
+                List<Event> events = organisation.getEventsCreated();
+
+                if (events != null && !events.isEmpty()) {
+                    // Optionally, you can return the events as a JSON string
+                    return new Gson().toJson(events);
+                }
+            } catch (JsonSyntaxException e) {
+                Log.e("SessionManager", "Failed to parse organisation JSON", e);
+            }
+        }
+
+        // Return empty string if no events found or error occurs
+        return "";
+    }
+
+
+    public void saveEventsToSharedPreferences(String eventsJson) {
+        // Log the JSON string before saving it to SharedPreferences
+        Log.d("SessionManager", "Saving Events JSON: " + eventsJson);
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("eventsCreated", eventsJson);
+        editor.apply();
+    }
+
 }

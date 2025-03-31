@@ -12,7 +12,7 @@ public class Event {
     private String location;
     private String creator;
     private String date;
-    private List<Member> attendees;
+
 
 
     public Event(String name, String description, String location, String creator, String date) {
@@ -71,15 +71,6 @@ public class Event {
     public void setDate(String date) {
         this.date = date;
     }
-
-    public List<Member> getAttendees() {
-        return attendees;
-    }
-
-    public void setAttendees(List<Member> attendees) {
-        this.attendees = attendees;
-    }
-
 
 
 
