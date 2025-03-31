@@ -10,18 +10,17 @@ public class Event {
     private String name;
     private String description;
     private String location;
-    private Organisation creator;
+    private String creator;
     private String date;
     private List<Member> attendees;
 
 
-    public Event(String name, String description, String location, Organisation creator, String date) {
+    public Event(String name, String description, String location, String creator, String date) {
         this.name = name;
         this.description = description;
         this.location = location;
         this.creator = creator;
         this.date = date;
-        this.attendees = new ArrayList<>();  // Initialize empty list
     }
 
 
@@ -57,11 +56,11 @@ public class Event {
         this.location = location;
     }
 
-    public Organisation getCreator() {
+    public String getCreator() {
         return creator;
     }
 
-    public void setCreator(Organisation creator) {
+    public void setCreator(String creator) {
         this.creator = creator;
     }
 

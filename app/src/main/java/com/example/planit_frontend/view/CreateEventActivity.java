@@ -57,6 +57,8 @@ public class CreateEventActivity extends AppCompatActivity {
         selectDateButton.setOnClickListener(v -> showDatePickerDialog());
 
         createEventButton.setOnClickListener(v -> saveEventToDatabase());
+        Log.d("SessionManager", "Organisation from session: " + sessionManager.getActiveOrganisation());
+
     }
 
     private void showDatePickerDialog() {
@@ -81,8 +83,15 @@ public class CreateEventActivity extends AppCompatActivity {
     }
 
     private Organisation getActiveOrganisation() {
-        return sessionManager.getActiveOrganisation();  // Use SessionManager to retrieve the active organisation
+        Organisation organisation = sessionManager.getActiveOrganisation();
+        if (organisation == null) {
+            Log.d("CreateEventActivity", "No organisation found in session.");
+        } else {
+            Log.d("CreateEventActivity", "Found organisation: " + organisation.getName());
+        }
+        return organisation;
     }
+
 
     private void saveEventToDatabase() {
         String name = eventName.getText().toString().trim();
@@ -102,23 +111,23 @@ public class CreateEventActivity extends AppCompatActivity {
             return;
         }
 
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account == null) {
-            Toast.makeText(this, "Please log in first", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // Now creator is just a String, so we pass the name directly
+        String creatorName = creator.getName();  // This is the organisation's name
+        Event event = new Event(name, description, location, creatorName, dateString);  // Set creator as the name
 
-        // Create event
-        Event event = new Event(name, description, location, creator, dateString);
-
+        // Make POST request to create the event in the events table
         userApiService.createEvent(event).enqueue(new Callback<Event>() {
             @Override
             public void onResponse(Call<Event> call, Response<Event> response) {
                 if (response.isSuccessful()) {
+                    Event createdEvent = response.body();
                     Toast.makeText(CreateEventActivity.this, "Event Created!", Toast.LENGTH_SHORT).show();
 
-                    // ✅ Add event to stored Organisation's eventsCreated list
-                    addEventToStoredOrganisation(event);
+                    // ✅ Add event to stored Organisation's eventsCreated list locally
+                    addEventToStoredOrganisation(createdEvent);
+
+                    // Optionally, also update the backend with the event in the organisation's event list (if necessary)
+                    updateOrganisationWithEvent(createdEvent);
 
                     finish();
                 } else {
@@ -136,16 +145,51 @@ public class CreateEventActivity extends AppCompatActivity {
 
     private void addEventToStoredOrganisation(Event event) {
         Organisation organisation = getActiveOrganisation();
-
         if (organisation != null) {
-            // Add the new event to the list
+            // Check if the event list is null, and initialize it if needed
             if (organisation.getEventsCreated() == null) {
                 organisation.setEventsCreated(new ArrayList<>());
             }
+
+            // Add the new event to the organisation's event list
             organisation.getEventsCreated().add(event);
 
-            // Save updated organisation back to SessionManager
-            sessionManager.saveActiveOrganisation(organisation);  // Use saveActiveOrganisation instead of saveOrganisation
+            // Log the event addition for debugging
+            Log.d("CreateEvent", "Adding event: " + event.getName() + " to organisation's event list");
+
+            // Save the updated organisation back to SessionManager
+            sessionManager.saveActiveOrganisation(organisation);
+        } else {
+            Log.e("CreateEvent", "No organisation found to add event");
+        }
+    }
+
+    // This method will ensure the updated organisation's eventsCreated list gets updated
+    private void updateOrganisationWithEvent(Event event) {
+        Organisation organisation = getActiveOrganisation();
+        if (organisation != null) {
+            // Ensure the organisation username is fetched
+            String organisationUsername = organisation.getUsername();
+
+            // Make PUT request to update the organisation with the newly created event
+            userApiService.addEventToOrganisation(organisationUsername, event).enqueue(new Callback<Organisation>() {
+                @Override
+                public void onResponse(Call<Organisation> call, Response<Organisation> response) {
+                    if (response.isSuccessful()) {
+                        // Optionally, save the updated organisation after the event is added
+                        sessionManager.saveActiveOrganisation(response.body());
+                    } else {
+                        Log.e("CreateEvent", "Failed to update organisation with event: " + response.code() + " " + response.message());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Organisation> call, Throwable t) {
+                    Log.e("CreateEvent", "Error updating organisation: " + t.getMessage());
+                }
+            });
+        } else {
+            Log.e("CreateEvent", "No organisation found to update");
         }
     }
 

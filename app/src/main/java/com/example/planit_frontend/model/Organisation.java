@@ -21,6 +21,7 @@ public class Organisation extends User {
         this.eventsCreated = eventsCreated;
     }
 
+
     // constructor to create an Organisation object using Google Sign-In info and user input
     public Organisation(String username, String email, String name) {
         this.setUsername(username);      // Set the username from user input

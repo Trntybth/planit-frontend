@@ -34,6 +34,7 @@ public class LoginActivity extends AppCompatActivity {
     private ApiService apiService;
     private SessionManager sessionManager;  // Add SessionManager instance
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,7 +50,13 @@ public class LoginActivity extends AppCompatActivity {
 
         // Initialize SessionManager
         sessionManager = new SessionManager(this);
-
+        Organisation organisation = sessionManager.getActiveOrganisation();
+        if (organisation != null) {
+            Log.d("SessionManager", "Organisation retrieved: " + organisation.toString());
+        } else {
+            Log.d("SessionManager", "No organisation found in session.");
+            // You might want to redirect or show an error message if the organisation is not found
+        }
         // Set up sign-in button click listener
         findViewById(R.id.sign_in_button).setOnClickListener(view -> signIn());
     }
@@ -95,8 +102,6 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<ApiResponse<Member>> call, Response<ApiResponse<Member>> response) {
                 Log.d("LoginActivity", "Member API Response Code: " + response.code());
-                Log.d("LoginActivity", "Member API Response Body: " + new Gson().toJson(response.body()));
-
                 if (response.isSuccessful() && response.body() != null) {
                     ApiResponse<Member> apiResponse = response.body();
                     Member member = apiResponse.getData();
@@ -121,6 +126,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
 
+
             @Override
             public void onFailure(Call<ApiResponse<Member>> call, Throwable t) {
                 Log.e("LoginActivity", "Error: " + t.getMessage());
@@ -140,15 +146,27 @@ public class LoginActivity extends AppCompatActivity {
                     Organisation organisation = response.body().getData();
                     Log.d("LoginActivity", "Received Organisation: " + organisation.getName());
 
-                    // Here you can check if it's the correct user type
+                    // Check if the organisation's user type is "Organisation"
                     if ("Organisation".equals(organisation.getUserType())) {
                         Log.d("LoginActivity", "User is an Organisation. Redirecting...");
+
+                        // Save the organisation to the session
+                        sessionManager.saveActiveOrganisation(organisation);
+
+                        // Log the saved organisation for debugging
+                        Log.d("SessionManager", "Saved Organisation: " + organisation.getName());
+
+                        // Show a success message
                         Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
+
+                        // Redirect to the Organisation home page
                         startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
                     } else {
+                        // If the user is not an Organisation, show a message and take appropriate action
                         Toast.makeText(LoginActivity.this, "Member login detected", Toast.LENGTH_SHORT).show();
                     }
                 } else {
+                    // If no organisation found, show a message and log it
                     Log.d("LoginActivity", "No Organisation found.");
                     Toast.makeText(LoginActivity.this, "No Organisation found with this email", Toast.LENGTH_SHORT).show();
                 }
@@ -156,6 +174,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<ApiResponse<Organisation>> call, Throwable t) {
+                // Log any errors in the API call
                 Log.e("LoginActivity", "Error: " + t.getMessage());
                 Toast.makeText(LoginActivity.this, "Error checking Organisation", Toast.LENGTH_SHORT).show();
             }
@@ -163,3 +182,4 @@ public class LoginActivity extends AppCompatActivity {
     }
 
 }
+
