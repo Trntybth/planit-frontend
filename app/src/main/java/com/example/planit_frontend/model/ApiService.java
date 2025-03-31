@@ -1,5 +1,7 @@
 package com.example.planit_frontend.model;
 
+import com.google.gson.annotations.SerializedName;
+
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -11,9 +13,8 @@ import retrofit2.http.Query;
 public interface ApiService {
 
 
-    @GET("users/email/{email}")
-    Call<Member> getUserByEmail(@Path("email") String email);
-
+    @GET("email/{email}")
+    Call<ApiResponse> getUserByEmail(@Path("email") String email);
     @GET("check-email-exists")
     Call<Boolean> checkEmailExists(@Query("email") String email);
 
@@ -35,11 +36,10 @@ public interface ApiService {
 
     // Check if the user is a Member by email
     @GET("users/email/{email}")
-    Call<Member> getMemberByEmail(@Path("email") String email);
+    Call<ApiResponse<Member>> getMemberByEmail(@Path("email") String email);
 
-    // Check if the user is an Organisation by email
     @GET("users/email/{email}")
-    Call<Organisation> getOrganisationByEmail(@Path("email") String email);
+    Call<ApiResponse<Organisation>> getOrganisationByEmail(@Path("email") String email);
 
 
 

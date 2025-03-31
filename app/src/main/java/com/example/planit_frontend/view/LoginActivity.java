@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.planit_frontend.R;
+import com.example.planit_frontend.model.ApiResponse;
 import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
@@ -24,6 +25,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import com.google.gson.Gson;  // Import Gson for JSON conversion
+
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
@@ -81,61 +84,82 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+
+
+    // Check if the user is a Member
     private void checkMemberInDatabase(String email) {
-        Log.d("LoginActivity", "Checking Member with email: " + email);  // Log the email
-        // First, check if the user is a Member
-        Call<Member> memberCall = apiService.getMemberByEmail(email);
-        memberCall.enqueue(new Callback<Member>() {
+        Log.d("LoginActivity", "Checking Member with email: " + email);
+
+        Call<ApiResponse<Member>> memberCall = apiService.getMemberByEmail(email);
+        memberCall.enqueue(new Callback<ApiResponse<Member>>() {
             @Override
-            public void onResponse(Call<Member> call, Response<Member> response) {
-                Log.d("LoginActivity", "Member response code: " + response.code()); // Log response code
-                Log.d("LoginActivity", "Member response body: " + response.body()); // Log the response body
+            public void onResponse(Call<ApiResponse<Member>> call, Response<ApiResponse<Member>> response) {
+                Log.d("LoginActivity", "Member API Response Code: " + response.code());
+                Log.d("LoginActivity", "Member API Response Body: " + new Gson().toJson(response.body()));
 
                 if (response.isSuccessful() && response.body() != null) {
-                    // If Member found, save and proceed using SessionManager
-                    sessionManager.saveActiveMember(response.body());
-                    Toast.makeText(LoginActivity.this, "Member login successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, MemberHomePageActivity.class));
+                    ApiResponse<Member> apiResponse = response.body();
+                    Member member = apiResponse.getData();
+                    String type = apiResponse.getType();
+
+                    if ("Organisation".equals(type)) {
+                        Log.d("LoginActivity", "User is an Organisation. Redirecting...");
+                        Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
+                    } else if (member != null) {
+                        Log.d("LoginActivity", "Logging in as Member: " + member.getEmail());
+                        sessionManager.saveActiveMember(member);
+                        Toast.makeText(LoginActivity.this, "Member login successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, MemberHomePageActivity.class));
+                    } else {
+                        Log.d("LoginActivity", "No Member found, checking Organisation...");
+                        checkOrganisationInDatabase(email);
+                    }
                 } else {
-                    // If no Member, check if the user is an Organisation
-                    Log.d("LoginActivity", "Member not found, checking Organisation...");
+                    Log.d("LoginActivity", "Member API call failed, checking Organisation...");
                     checkOrganisationInDatabase(email);
                 }
             }
 
             @Override
-            public void onFailure(Call<Member> call, Throwable t) {
-                Log.e("Error", "Failed to get Member: " + t.getMessage());
+            public void onFailure(Call<ApiResponse<Member>> call, Throwable t) {
+                Log.e("LoginActivity", "Error: " + t.getMessage());
                 Toast.makeText(LoginActivity.this, "Error checking Member", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private void checkOrganisationInDatabase(String email) {
-        Log.d("LoginActivity", "Checking Organisation with email: " + email);  // Log the email
-        // Check if the user is an Organisation
-        Call<Organisation> organisationCall = apiService.getOrganisationByEmail(email);
-        organisationCall.enqueue(new Callback<Organisation>() {
-            @Override
-            public void onResponse(Call<Organisation> call, Response<Organisation> response) {
-                Log.d("LoginActivity", "Organisation response code: " + response.code()); // Log response code
-                Log.d("LoginActivity", "Organisation response body: " + response.body()); // Log the response body
+        Log.d("LoginActivity", "Checking Organisation with email: " + email);
 
+        Call<ApiResponse<Organisation>> organisationCall = apiService.getOrganisationByEmail(email);
+        organisationCall.enqueue(new Callback<ApiResponse<Organisation>>() {
+            @Override
+            public void onResponse(Call<ApiResponse<Organisation>> call, Response<ApiResponse<Organisation>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    // If Organisation found, save and proceed using SessionManager
-                    sessionManager.saveActiveOrganisation(response.body());
-                    Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
+                    Organisation organisation = response.body().getData();
+                    Log.d("LoginActivity", "Received Organisation: " + organisation.getName());
+
+                    // Here you can check if it's the correct user type
+                    if ("Organisation".equals(organisation.getUserType())) {
+                        Log.d("LoginActivity", "User is an Organisation. Redirecting...");
+                        Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
+                    } else {
+                        Toast.makeText(LoginActivity.this, "Member login detected", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
-                    Toast.makeText(LoginActivity.this, "No account found with this email.", Toast.LENGTH_SHORT).show();
+                    Log.d("LoginActivity", "No Organisation found.");
+                    Toast.makeText(LoginActivity.this, "No Organisation found with this email", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<Organisation> call, Throwable t) {
-                Log.e("Error", "Failed to get Organisation: " + t.getMessage());
+            public void onFailure(Call<ApiResponse<Organisation>> call, Throwable t) {
+                Log.e("LoginActivity", "Error: " + t.getMessage());
                 Toast.makeText(LoginActivity.this, "Error checking Organisation", Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 }
