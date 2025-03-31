@@ -38,6 +38,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.eventLocation.setText(event.getLocation());
         holder.eventCreator.setText(event.getCreator());
         holder.eventDate.setText(event.getDate());
+
     }
 
     @Override
@@ -45,6 +46,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return eventsList.size();
     }
 
+    // ViewHolder class for event item views
     // ViewHolder class for event item views
     public static class EventViewHolder extends RecyclerView.ViewHolder {
         public TextView eventName, eventDescription, eventLocation, eventCreator, eventDate;
@@ -57,5 +59,10 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             eventCreator = view.findViewById(R.id.eventCreatorTextView);
             eventDate = view.findViewById(R.id.eventDateTextView);
         }
+    }
+
+    // Interface to handle click events
+    public interface OnItemClickListener {
+        void onItemClick(Event event);  // Pass the clicked event
     }
 }

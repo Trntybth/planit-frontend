@@ -86,9 +86,7 @@ public class OrganisationHomePageActivity extends AppCompatActivity {
     private List<Event> parseJsonToEventsList(String eventsJson) {
         Gson gson = new Gson();
         Type type = new TypeToken<List<Event>>(){}.getType();
-        List<Event> events = gson.fromJson(eventsJson, type);
-        Log.d("OrganisationHomePage", "Parsed Events: " + events.toString()); // Debugging line
-        return events;
+        return gson.fromJson(eventsJson, type);
     }
 }
 
