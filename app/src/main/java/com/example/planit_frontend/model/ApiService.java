@@ -1,6 +1,9 @@
+
 package com.example.planit_frontend.model;
 
 import com.google.gson.annotations.SerializedName;
+
+import java.util.List;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -13,20 +16,31 @@ import retrofit2.http.Query;
 
 public interface ApiService {
 
-
-    @GET("email/{email}")
-    Call<ApiResponse> getUserByEmail(@Path("email") String email);
-    @GET("check-email-exists")
-    Call<Boolean> checkEmailExists(@Query("email") String email);
-
+    // members
     @POST("members")
     Call<Void> createMember(@Body Member member);
+
+    // organisations
 
     @POST("organisations")
     Call<Void> createOrganisation(@Body Organisation organisation);
 
-    @POST("events")
+    /* put the event in the eventsCreated list */
+    @PUT("organisations/email/{email}/events")
+    Call<Organisation> addEventToOrganisation(@Path("email") String email, @Body Event event);
+
+    @GET("organisations/email/{email}/events") /* get the eventList from the organisation */
+    Call<List<Event>> getEventsForOrganisationsByEmail(@Path("email") String email);
+
+
+    // events
+    @POST("events/events")
     Call<Event> createEvent(@Body Event event);
+
+    @PUT("events/{id}")
+    Call<ApiResponse<Event>> updateEventById(@Path("id") String id, @Body Event event);
+
+    // users
 
     @GET("users/check-member")
     Call<Boolean> checkMemberExists(@Query("email") String email, @Query("username") String username);
@@ -35,14 +49,18 @@ public interface ApiService {
     Call<Boolean> checkOrganisationExists(@Query("email") String email, @Query("username") String username);
 
 
-    // Check if the user is a Member by email
     @GET("users/email/{email}")
     Call<ApiResponse<Member>> getMemberByEmail(@Path("email") String email);
 
     @GET("users/email/{email}")
     Call<ApiResponse<Organisation>> getOrganisationByEmail(@Path("email") String email);
 
-    @PUT("/organisations/{username}/events")
-    Call<Organisation> addEventToOrganisation(@Path("username") String username, @Body Event event);
+
+
+
+    // get the usertype
+    @GET("users/email/{email}/usertype")
+    Call<String> getUserTypeByEmail(@Path("email") String email);
 
 }
+

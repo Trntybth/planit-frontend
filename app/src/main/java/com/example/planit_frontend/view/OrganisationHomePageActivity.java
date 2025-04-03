@@ -5,88 +5,119 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.planit_frontend.R;
+import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Event;
+import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.SessionManager;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.example.planit_frontend.view.EventAdapter;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OrganisationHomePageActivity extends AppCompatActivity {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-    // Initialize SessionManager
-    SessionManager sessionManager;
+public class OrganisationHomePageActivity extends AppCompatActivity implements EventAdapter.OnItemClickListener {
+
     private RecyclerView eventsRecyclerView;
     private EventAdapter eventsAdapter;
-    private List<Event> eventsList;
+    private List<Event> eventsList = new ArrayList<>();
+    private ApiService apiService;
+    private String username;  // Assuming you get the username of the logged-in user
 
-
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_organisationhomepage);
 
-        // Initialize the session manager
+
         sessionManager = new SessionManager(this);
-
-        // Find the button by its ID
-        Button createNewEventButton = findViewById(R.id.createNewEventButton);
         eventsRecyclerView = findViewById(R.id.eventsRecyclerView);
-
-        // Setup RecyclerView
         eventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        // Load events from shared preferences
-        loadEventsFromSharedPreferences();
+        apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
-        // Set up the adapter for RecyclerView only after eventsList is populated
-        eventsAdapter = new EventAdapter(eventsList);
-        eventsRecyclerView.setAdapter(eventsAdapter);
+        // Fetch events using username
+        fetchOrganisationEvents();
 
-        // Set an OnClickListener on the button
-        createNewEventButton.setOnClickListener(new View.OnClickListener() {
+        // Find the "Create Event" button
+        Button createEventButton = findViewById(R.id.createNewEventButton);
+
+        // Set an onClickListener for the button
+        createEventButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Intent to navigate to CreateEventActivity
-                Intent intent = new Intent(OrganisationHomePageActivity.this, CreateEventActivity.class);
-                startActivity(intent);  // Start the new activity
+                onCreateEventClicked(v);
             }
         });
     }
 
-    private void loadEventsFromSharedPreferences() {
-        // Get the list of events from SharedPreferences (assuming the events are saved as a JSON string)
-        // This can be replaced with your actual method of retrieving events from SharedPreferences
-        String eventsJson = sessionManager.getUserEvents(); // Replace with the actual key
+    public void onCreateEventClicked(View view) {
+        // Navigate to CreateEventActivity to create a new event
+        Intent intent = new Intent(this, CreateEventActivity.class);
+        startActivity(intent);
+    }
 
-        // Log the raw JSON string
-        Log.d("OrganisationHomePage", "Events JSON: " + eventsJson);
 
-        if (eventsJson != null && !eventsJson.isEmpty()) {
-            // Parse the JSON string into a list of Event objects
-            eventsList = parseJsonToEventsList(eventsJson);
-            // Log the parsed events list
-            Log.d("OrganisationHomePage", "Parsed Events List: " + eventsList.toString());
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Fetch events whenever the activity resumes
+        fetchOrganisationEvents();
+    }
+
+    private void fetchOrganisationEvents() {
+        // Replace 'username' with 'email' in the API call
+        String email = sessionManager.getActiveEmail();  // Retrieve the email from session
+        if (email != null) {
+            Call<List<Event>> call = apiService.getEventsForOrganisationsByEmail(email);  // API call by email
+
+            call.enqueue(new Callback<List<Event>>() {
+                @Override
+                public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        eventsList.clear();
+                        eventsList.addAll(response.body());
+                        // Pass both parameters to the adapter
+                        eventsAdapter = new EventAdapter(eventsList, OrganisationHomePageActivity.this);
+                        eventsRecyclerView.setAdapter(eventsAdapter);
+                    } else {
+                        // Handle failure (e.g. show an error message)
+                        Log.e("Error", "Failed to load events.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<Event>> call, Throwable t) {
+                    Log.e("Error", t.getMessage());
+                }
+            });
         } else {
-            // No events found, initialize an empty list
-            eventsList = new ArrayList<>();
-            Log.d("OrganisationHomePage", "No events found.");
+            Log.e("Error", "Email is null.");
         }
     }
 
-    private List<Event> parseJsonToEventsList(String eventsJson) {
-        Gson gson = new Gson();
-        Type type = new TypeToken<List<Event>>(){}.getType();
-        return gson.fromJson(eventsJson, type);
+    @Override
+    public void onItemClick(Event event) {
+        // Handle the event item click, e.g., show details
+        Toast.makeText(this, "Event clicked: " + event.getName(), Toast.LENGTH_SHORT).show();
     }
-}
 
+    @Override
+    public void onUpdateClick(Event event) {
+        // Handle the update button click
+        Toast.makeText(this, "Update event: " + event.getName(), Toast.LENGTH_SHORT).show();
+    }
+
+
+}

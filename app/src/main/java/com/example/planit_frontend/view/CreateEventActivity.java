@@ -12,16 +12,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.planit_frontend.R;
 import com.example.planit_frontend.model.Event;
-import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.SessionManager;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.gson.Gson;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 
 import retrofit2.Call;
@@ -36,7 +31,7 @@ public class CreateEventActivity extends AppCompatActivity {
     private ApiService userApiService;
 
     // Initialize SessionManager
-    SessionManager sessionManager;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,8 +53,6 @@ public class CreateEventActivity extends AppCompatActivity {
         selectDateButton.setOnClickListener(v -> showDatePickerDialog());
 
         createEventButton.setOnClickListener(v -> saveEventToDatabase());
-        Log.d("SessionManager", "Organisation from session: " + sessionManager.getActiveOrganisation());
-
     }
 
     private void showDatePickerDialog() {
@@ -79,123 +72,87 @@ public class CreateEventActivity extends AppCompatActivity {
         datePickerDialog.show();
     }
 
-    private Member getActiveMember() {
-        return sessionManager.getActiveMember();  // Use SessionManager to retrieve the active member
-    }
-
-    private Organisation getActiveOrganisation() {
-        Organisation organisation = sessionManager.getActiveOrganisation();
-        if (organisation == null) {
-            Log.d("CreateEventActivity", "No organisation found in session.");
-        } else {
-            Log.d("CreateEventActivity", "Found organisation: " + organisation.getName());
-        }
-        return organisation;
-    }
-
-
     private void saveEventToDatabase() {
         String name = eventName.getText().toString().trim();
         String description = eventDescription.getText().toString().trim();
         String location = eventLocation.getText().toString().trim();
+        String dateString = eventDateTextView.getText().toString().trim();
 
-        if (name.isEmpty() || description.isEmpty() || location.isEmpty() || eventDateTextView.getText().toString().isEmpty()) {
+        Log.d("CreateEventActivity", "Event Details - Name: " + name + ", Description: " + description + ", Location: " + location + ", Date: " + dateString);
+
+        if (name.isEmpty() || description.isEmpty() || location.isEmpty() || dateString.isEmpty()) {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
+            Log.d("CreateEventActivity", "Fields are empty, aborting event creation.");
             return;
         }
 
-        // Get the selected date as a string
-        String dateString = eventDateTextView.getText().toString();
-        Organisation creator = getActiveOrganisation();
-        if (creator == null) {
-            Toast.makeText(this, "No organisation found", Toast.LENGTH_SHORT).show();
+        // Get the active email from session
+        String activeEmail = sessionManager.getActiveEmail();
+        if (activeEmail == null) {
+            Toast.makeText(this, "No active session found. Please log in.", Toast.LENGTH_SHORT).show();
+            Log.d("CreateEventActivity", "No active session found, cannot create event.");
             return;
         }
 
-        // Now creator is just a String, so we pass the name directly
-        String creatorName = creator.getName();  // This is the organisation's name
-        Event event = new Event(name, description, location, creatorName, dateString);  // Set creator as the name
+        Log.d("CreateEventActivity", "Creating event for user with email: " + activeEmail);
+
+        // Create an event with the active email as the creator
+        Event event = new Event(name, description, location, activeEmail, dateString); // Using email instead of username
+
+        // Log the event object details before making the API call
+        Log.d("CreateEventActivity", "Event object to be sent: " +
+                "Name: " + event.getName() + ", " +
+                "Description: " + event.getDescription() + ", " +
+                "Location: " + event.getLocation() + ", " +
+                "Creator: " + event.getCreator() + ", " +
+                "Date: " + event.getDate());
 
         // Make POST request to create the event in the events table
+        Log.d("CreateEventActivity", "Sending request to create event...");
         userApiService.createEvent(event).enqueue(new Callback<Event>() {
             @Override
             public void onResponse(Call<Event> call, Response<Event> response) {
                 if (response.isSuccessful()) {
                     Event createdEvent = response.body();
                     Toast.makeText(CreateEventActivity.this, "Event Created!", Toast.LENGTH_SHORT).show();
+                    Log.d("CreateEventActivity", "Event created successfully: " + createdEvent);
 
-                    // ✅ Add event to stored Organisation's eventsCreated list locally
-                    addEventToStoredOrganisation(createdEvent);
-
-                    // Optionally, also update the backend with the event in the organisation's event list (if necessary)
-                    updateOrganisationWithEvent(createdEvent);
+                    // Update the organisation with the new event
+                    updateOrganisationWithEvent(createdEvent, activeEmail);
 
                     finish();
                 } else {
                     Toast.makeText(CreateEventActivity.this, "Failed to create event: " + response.code() + " " + response.message(), Toast.LENGTH_SHORT).show();
-                    Log.e("CreateEvent", "Error code: " + response.code() + ", Message: " + response.message());
+                    Log.e("CreateEventActivity", "Error code: " + response.code() + ", Message: " + response.message());
                 }
             }
 
             @Override
             public void onFailure(Call<Event> call, Throwable t) {
-                Toast.makeText(CreateEventActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                // Log the failure reason if the request fails
+                Log.e("CreateEventActivity", "Request failed: " + t.getMessage(), t);
+                Toast.makeText(CreateEventActivity.this, "Request failed: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void addEventToStoredOrganisation(Event event) {
-        Organisation organisation = getActiveOrganisation();
-        if (organisation != null) {
-            // Check if the event list is null, and initialize it if needed
-            if (organisation.getEventsCreated() == null) {
-                organisation.setEventsCreated(new ArrayList<>());
+    private void updateOrganisationWithEvent(Event event, String email) {
+        Log.d("CreateEventActivity", "Updating organisation with event...");
+        // Send the event to the backend to add to the organisation using email as identifier
+        userApiService.addEventToOrganisation(email, event).enqueue(new Callback<Organisation>() {
+            @Override
+            public void onResponse(Call<Organisation> call, Response<Organisation> response) {
+                if (response.isSuccessful()) {
+                    Log.d("CreateEventActivity", "Organisation updated successfully with event.");
+                } else {
+                    Log.e("CreateEventActivity", "Failed to update organisation with event: " + response.code() + " " + response.message());
+                }
             }
 
-            // Add the new event to the organisation's event list
-            organisation.getEventsCreated().add(event);
-
-            // Log the event addition for debugging
-            Log.d("CreateEvent", "Adding event: " + event.getName() + " to organisation's event list");
-
-            // Save the updated organisation back to SessionManager
-            sessionManager.saveActiveOrganisation(organisation);
-
-            // Optionally, also save the events to SharedPreferences (if desired)
-            String eventsJson = new Gson().toJson(organisation.getEventsCreated());
-            sessionManager.saveEventsToSharedPreferences(eventsJson);  // Call your method to save to SharedPreferences
-        } else {
-            Log.e("CreateEvent", "No organisation found to add event");
-        }
+            @Override
+            public void onFailure(Call<Organisation> call, Throwable t) {
+                Log.e("CreateEventActivity", "Error updating organisation: " + t.getMessage());
+            }
+        });
     }
-
-    // This method will ensure the updated organisation's eventsCreated list gets updated
-    private void updateOrganisationWithEvent(Event event) {
-        Organisation organisation = getActiveOrganisation();
-        if (organisation != null) {
-            // Ensure the organisation username is fetched
-            String organisationUsername = organisation.getUsername();
-
-            // Make PUT request to update the organisation with the newly created event
-            userApiService.addEventToOrganisation(organisationUsername, event).enqueue(new Callback<Organisation>() {
-                @Override
-                public void onResponse(Call<Organisation> call, Response<Organisation> response) {
-                    if (response.isSuccessful()) {
-                        // Optionally, save the updated organisation after the event is added
-                        sessionManager.saveActiveOrganisation(response.body());
-                    } else {
-                        Log.e("CreateEvent", "Failed to update organisation with event: " + response.code() + " " + response.message());
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<Organisation> call, Throwable t) {
-                    Log.e("CreateEvent", "Error updating organisation: " + t.getMessage());
-                }
-            });
-        } else {
-            Log.e("CreateEvent", "No organisation found to update");
-        }
-    }
-
 }

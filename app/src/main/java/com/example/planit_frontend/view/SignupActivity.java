@@ -125,7 +125,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
 
-        private void handleSignIn(GoogleSignInAccount account) {
+    private void handleSignIn(GoogleSignInAccount account) {
         if (account != null) {
             // Get the email and Google profile info
             String email = account.getEmail();

@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 public class ApiResponse<T> {
     private T data;
     private String type;
+    private boolean success;  // Add a success flag to indicate success or failure
 
     public T getData() {
         return data;
@@ -20,5 +21,13 @@ public class ApiResponse<T> {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public boolean isSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
     }
 }

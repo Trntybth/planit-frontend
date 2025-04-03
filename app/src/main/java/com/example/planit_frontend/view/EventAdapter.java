@@ -3,8 +3,9 @@ package com.example.planit_frontend.view;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -16,53 +17,61 @@ import java.util.List;
 public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
 
     private List<Event> eventsList;
-    private AdapterView.OnItemClickListener listener;
-    // Constructor to receive events list
-    public EventAdapter(List<Event> events) {
-        this.eventsList = events;
+    private OnItemClickListener listener;
+
+    // Define the OnItemClickListener interface
+    public interface OnItemClickListener {
+        void onItemClick(Event event);
+        void onUpdateClick(Event event); // New method for update button click
+    }
+
+    public EventAdapter(List<Event> eventsList, OnItemClickListener listener) {
+        this.eventsList = eventsList;
+        this.listener = listener;
     }
 
     @Override
     public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // Inflate the layout for each event
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_event, parent, false);
-        return new EventViewHolder(itemView);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_event, parent, false);
+        return new EventViewHolder(view);
     }
 
-    @Override
-    public void onBindViewHolder(EventViewHolder holder, int position) {
-        Event event = eventsList.get(position);
-        holder.eventName.setText(event.getName());
-        holder.eventDescription.setText(event.getDescription());
-        holder.eventLocation.setText(event.getLocation());
-        holder.eventCreator.setText(event.getCreator());
-        holder.eventDate.setText(event.getDate());
-
-    }
 
     @Override
     public int getItemCount() {
         return eventsList.size();
     }
 
-    // ViewHolder class for event item views
-    // ViewHolder class for event item views
     public static class EventViewHolder extends RecyclerView.ViewHolder {
-        public TextView eventName, eventDescription, eventLocation, eventCreator, eventDate;
+        TextView eventNameTextView;
+        TextView eventDescriptionTextView;
+        TextView eventLocationTextView; // New field
+        Button updateButton;
 
-        public EventViewHolder(View view) {
-            super(view);
-            eventName = view.findViewById(R.id.eventNameTextView);
-            eventDescription = view.findViewById(R.id.eventDescriptionTextView);
-            eventLocation = view.findViewById(R.id.eventLocationTextView);
-            eventCreator = view.findViewById(R.id.eventCreatorTextView);
-            eventDate = view.findViewById(R.id.eventDateTextView);
+        public EventViewHolder(View itemView) {
+            super(itemView);
+            eventNameTextView = itemView.findViewById(R.id.eventNameTextView);
+            eventDescriptionTextView = itemView.findViewById(R.id.eventDescriptionTextView);
+            eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView); // Add this in your XML layout
+            updateButton = itemView.findViewById(R.id.updateButton);
         }
     }
 
-    // Interface to handle click events
-    public interface OnItemClickListener {
-        void onItemClick(Event event);  // Pass the clicked event
+    @Override
+    public void onBindViewHolder(EventViewHolder holder, int position) {
+        Event event = eventsList.get(position);
+        holder.eventNameTextView.setText(event.getName());
+        holder.eventDescriptionTextView.setText(event.getDescription());
+        holder.eventLocationTextView.setText(event.getLocation()); // Bind location
+
+        holder.updateButton.setOnClickListener(v -> listener.onUpdateClick(event));
     }
+
+
+    public void updateEvents(List<Event> newEvents) {
+        this.eventsList.clear(); // Clear the current list
+        this.eventsList.addAll(newEvents); // Add new data
+        notifyDataSetChanged(); // Notify RecyclerView to refresh
+    }
+
 }

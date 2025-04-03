@@ -9,10 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.planit_frontend.R;
-import com.example.planit_frontend.model.ApiResponse;
 import com.example.planit_frontend.model.ApiService;
-import com.example.planit_frontend.model.Member;
-import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.SessionManager;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -20,44 +17,36 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import com.google.gson.Gson;  // Import Gson for JSON conversion
-
-import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
+    private static final String TAG = "LoginActivity";
     private GoogleSignInOptions gso;
     private ApiService apiService;
-    private SessionManager sessionManager;  // Add SessionManager instance
-
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Initialize Google Sign-In options
         gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
-        // Initialize ApiService using RetrofitInstance
         apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
-
-        // Initialize SessionManager
         sessionManager = new SessionManager(this);
-        Organisation organisation = sessionManager.getActiveOrganisation();
-        if (organisation != null) {
-            Log.d("SessionManager", "Organisation retrieved: " + organisation.toString());
+
+        String email = sessionManager.getActiveEmail();
+        if (email != null) {
+            Log.d(TAG, "Retrieved Email from session: " + email);
         } else {
-            Log.d("SessionManager", "No organisation found in session.");
-            // You might want to redirect or show an error message if the organisation is not found
+            Log.d(TAG, "No active email found in session.");
         }
-        // Set up sign-in button click listener
+
         findViewById(R.id.sign_in_button).setOnClickListener(view -> signIn());
     }
 
@@ -70,7 +59,6 @@ public class LoginActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        // Handle the result of Google Sign-In
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             task.addOnCompleteListener(this, new OnCompleteListener<GoogleSignInAccount>() {
@@ -79,107 +67,53 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         GoogleSignInAccount account = task.getResult();
                         if (account != null) {
-                            // Now use the new methods to check if the user exists as a Member or Organisation
-                            checkMemberInDatabase(account.getEmail());
+                            Log.d(TAG, "Google Sign-In successful: " + account.getEmail());
+                            sessionManager.saveActiveEmail(account.getEmail());
+                            proceedToNextScreen(account.getEmail());
                         }
                     } else {
-                        // Google Sign-In failed, display a message
-                        Toast.makeText(LoginActivity.this, "Google Sign-In failed", Toast.LENGTH_SHORT).show();
+                        Log.e(TAG, "Google Sign-In failed", task.getException());
                     }
                 }
             });
         }
     }
 
+    private void proceedToNextScreen(String email) {
+        Log.d(TAG, "Proceeding with email: " + email);
 
-
-    // Check if the user is a Member
-    private void checkMemberInDatabase(String email) {
-        Log.d("LoginActivity", "Checking Member with email: " + email);
-
-        Call<ApiResponse<Member>> memberCall = apiService.getMemberByEmail(email);
-        memberCall.enqueue(new Callback<ApiResponse<Member>>() {
+        // Make the call expecting a String (either "Organisation" or "Member")
+        Call<String> userTypeCall = apiService.getUserTypeByEmail(email);
+        userTypeCall.enqueue(new Callback<String>() {
             @Override
-            public void onResponse(Call<ApiResponse<Member>> call, Response<ApiResponse<Member>> response) {
-                Log.d("LoginActivity", "Member API Response Code: " + response.code());
+            public void onResponse(Call<String> call, Response<String> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<Member> apiResponse = response.body();
-                    Member member = apiResponse.getData();
-                    String type = apiResponse.getType();
+                    String userType = response.body().trim();  // Clean any leading/trailing spaces
+                    Log.d(TAG, "User Type: " + userType);
 
-                    if ("Organisation".equals(type)) {
-                        Log.d("LoginActivity", "User is an Organisation. Redirecting...");
-                        Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
-                    } else if (member != null) {
-                        Log.d("LoginActivity", "Logging in as Member: " + member.getEmail());
-                        sessionManager.saveActiveMember(member);
-                        Toast.makeText(LoginActivity.this, "Member login successful", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, MemberHomePageActivity.class));
+                    // Handle user type logic (e.g., navigate to home page)
+                    if (userType.equals("Organisation")) {
+                        Intent intent = new Intent(LoginActivity.this, OrganisationHomePageActivity.class);
+                        startActivity(intent);
+                        finish();  // Close the current login screen
+                    } else if (userType.equals("Member")) {
+                        Intent intent = new Intent(LoginActivity.this, MemberHomePageActivity.class);
+                        startActivity(intent);
+                        finish();  // Close the current login screen
                     } else {
-                        Log.d("LoginActivity", "No Member found, checking Organisation...");
-                        checkOrganisationInDatabase(email);
+                        Toast.makeText(LoginActivity.this, "Unknown user type", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Log.d("LoginActivity", "Member API call failed, checking Organisation...");
-                    checkOrganisationInDatabase(email);
-                }
-            }
-
-
-            @Override
-            public void onFailure(Call<ApiResponse<Member>> call, Throwable t) {
-                Log.e("LoginActivity", "Error: " + t.getMessage());
-                Toast.makeText(LoginActivity.this, "Error checking Member", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void checkOrganisationInDatabase(String email) {
-        Log.d("LoginActivity", "Checking Organisation with email: " + email);
-
-        Call<ApiResponse<Organisation>> organisationCall = apiService.getOrganisationByEmail(email);
-        organisationCall.enqueue(new Callback<ApiResponse<Organisation>>() {
-            @Override
-            public void onResponse(Call<ApiResponse<Organisation>> call, Response<ApiResponse<Organisation>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Organisation organisation = response.body().getData();
-                    Log.d("LoginActivity", "Received Organisation: " + organisation.getName());
-
-                    // Check if the organisation's user type is "Organisation"
-                    if ("Organisation".equals(organisation.getUserType())) {
-                        Log.d("LoginActivity", "User is an Organisation. Redirecting...");
-
-                        // Save the organisation to the session
-                        sessionManager.saveActiveOrganisation(organisation);
-
-                        // Log the saved organisation for debugging
-                        Log.d("SessionManager", "Saved Organisation: " + organisation.getName());
-
-                        // Show a success message
-                        Toast.makeText(LoginActivity.this, "Organisation login successful", Toast.LENGTH_SHORT).show();
-
-                        // Redirect to the Organisation home page
-                        startActivity(new Intent(LoginActivity.this, OrganisationHomePageActivity.class));
-                    } else {
-                        // If the user is not an Organisation, show a message and take appropriate action
-                        Toast.makeText(LoginActivity.this, "Member login detected", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    // If no organisation found, show a message and log it
-                    Log.d("LoginActivity", "No Organisation found.");
-                    Toast.makeText(LoginActivity.this, "No Organisation found with this email", Toast.LENGTH_SHORT).show();
+                    Log.d(TAG, "Failed to retrieve user type");
+                    Toast.makeText(LoginActivity.this, "Failed to retrieve user type", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<ApiResponse<Organisation>> call, Throwable t) {
-                // Log any errors in the API call
-                Log.e("LoginActivity", "Error: " + t.getMessage());
-                Toast.makeText(LoginActivity.this, "Error checking Organisation", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<String> call, Throwable t) {
+                Log.e(TAG, "Error retrieving user type", t);
+                Toast.makeText(LoginActivity.this, "Network error. Try again.", Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 }
-

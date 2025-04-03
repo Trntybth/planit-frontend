@@ -4,134 +4,43 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-
 public class SessionManager {
 
     private static final String PREF_NAME = "user_session";
+    private static final String KEY_ACTIVE_EMAIL = "active_email";
+    private static final String TAG = "SessionManager";  // Use TAG for consistent logging
     private SharedPreferences sharedPreferences;
-    private Gson gson;
 
     public SessionManager(Context context) {
         sharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
-        gson = new Gson();
     }
 
-/*    // Get the active user (either Member or Organisation) from SharedPreferences
-    public Object getActiveUser() {
-        String userJson = sharedPreferences.getString("active_user", null);
-        String userType = sharedPreferences.getString("active_user_type", null);
-
-        if (userJson != null && userType != null) {
-            if (userType.equals("Member")) {
-                return gson.fromJson(userJson, Member.class);
-            } else if (userType.equals("Organisation")) {
-                return gson.fromJson(userJson, Organisation.class);
-            }
-        }
-        return null;  // Return null if no active user found
-    }*/
-
-    // Get the active Member from SharedPreferences
-    public Member getActiveMember() {
-        String memberJson = sharedPreferences.getString("activeMember", null);
-        if (memberJson != null) {
-            return new Gson().fromJson(memberJson, Member.class);
-        }
-        return null;
+    // Get the active email from SharedPreferences
+    public String getActiveEmail() {
+        String email = sharedPreferences.getString(KEY_ACTIVE_EMAIL, null);
+        Log.d(TAG, "Retrieved email: " + email);  // Log here using TAG
+        return email;
     }
 
-    public Organisation getActiveOrganisation() {
-        String organisationJson = sharedPreferences.getString("activeOrganisation", null);  // Updated key to match saving
-
-        // Log all entries in SharedPreferences to see what is stored
-        Map<String, ?> allEntries = sharedPreferences.getAll();
-        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
-            Log.d("SessionManager", "Key: " + entry.getKey() + ", Value: " + entry.getValue());
+    // Save the active email to SharedPreferences
+    public void saveActiveEmail(String email) {
+        if (email == null) {
+            Log.e(TAG, "Cannot save null active email.");  // Log error if email is null
+            return;
         }
 
-        if (organisationJson != null) {
-            Organisation organisation = new Gson().fromJson(organisationJson, Organisation.class);
-            return organisation;
-        }
+        Log.d(TAG, "Saving active email: " + email);
 
-        Log.d("SessionManager", "No organisation found in session.");
-        return null;
-    }
-
-
-    // Save the active Member to SharedPreferences
-    public void saveActiveMember(Member member) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        String memberJson = new Gson().toJson(member);
-        editor.putString("activeMember", memberJson);
-
-        // Clear any previous "active_user_type"
-        editor.putString("active_user_type", "Member");
-        editor.apply();  // or commit() for synchronous saving
+        editor.putString(KEY_ACTIVE_EMAIL, email);
+        editor.apply();  // Apply changes asynchronously
     }
 
-    public void saveActiveOrganisation(Organisation organisation) {
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        String organisationJson = new Gson().toJson(organisation);
-
-        // Log the JSON string to verify that the object is being serialized correctly
-        Log.d("SessionManager", "Organisation JSON: " + organisationJson);
-
-        editor.putString("activeOrganisation", organisationJson);
-
-        // Clear any previous "active_user_type"
-        editor.putString("active_user_type", "Organisation");
-        editor.apply();  // or commit() for synchronous saving
-    }
-
-
-    // Clear the session (remove active user)
+    // Clear the session (remove email)
     public void clearSession() {
-        sharedPreferences.edit().clear().apply();
-    }
-
-    // Retrieve activeOrganisation JSON string: You first retrieve the events from the activeOrganisation key.
-    // This key contains the eventsCreated list, so you need to treat this data as a JSON string.
-    public String getUserEvents() {
-        // Retrieve the JSON string of activeOrganisation
-        String organisationJson = sharedPreferences.getString("activeOrganisation", "");
-
-        if (organisationJson != null && !organisationJson.isEmpty()) {
-            try {
-                // Deserialize the activeOrganisation JSON into an Organisation object
-                Organisation organisation = new Gson().fromJson(organisationJson, Organisation.class);
-
-                // Retrieve the eventsCreated list from the Organisation object
-                List<Event> events = organisation.getEventsCreated();
-
-                if (events != null && !events.isEmpty()) {
-                    // Optionally, you can return the events as a JSON string
-                    return new Gson().toJson(events);
-                }
-            } catch (JsonSyntaxException e) {
-                Log.e("SessionManager", "Failed to parse organisation JSON", e);
-            }
-        }
-
-        // Return empty string if no events found or error occurs
-        return "";
-    }
-
-
-    public void saveEventsToSharedPreferences(String eventsJson) {
-        // Log the JSON string before saving it to SharedPreferences
-        Log.d("SessionManager", "Saving Events JSON: " + eventsJson);
-
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("eventsCreated", eventsJson);
-        editor.apply();
+        editor.remove(KEY_ACTIVE_EMAIL);  // Remove the active email from SharedPreferences
+        editor.apply();  // Apply changes asynchronously
+        Log.d(TAG, "Session cleared.");
     }
-
 }
