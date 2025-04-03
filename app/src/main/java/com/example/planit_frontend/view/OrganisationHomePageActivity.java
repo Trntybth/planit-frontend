@@ -39,24 +39,25 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_organisationhomepage);
 
-
         sessionManager = new SessionManager(this);
         eventsRecyclerView = findViewById(R.id.eventsRecyclerView);
         eventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
-        // Fetch events using username
+        // Fetch events
         fetchOrganisationEvents();
 
-        // Find the "Create Event" button
+        // Create Event Button
         Button createEventButton = findViewById(R.id.createNewEventButton);
+        createEventButton.setOnClickListener(this::onCreateEventClicked);
 
-        // Set an onClickListener for the button
-        createEventButton.setOnClickListener(new View.OnClickListener() {
+        // Logout Button
+        Button logoutButton = findViewById(R.id.logoutButtonOrg);
+        logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onCreateEventClicked(v);
+                logoutUser();
             }
         });
     }
@@ -176,5 +177,14 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
         });
     }
 
+    private void logoutUser() {
+        // Clear the active session
+        sessionManager.clearSession();
+
+        // Redirect the user to the Signup page
+        Intent intent = new Intent(OrganisationHomePageActivity.this, SignupActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); // Clears back stack
+        startActivity(intent);
+    }
 
 }

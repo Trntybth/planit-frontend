@@ -131,10 +131,6 @@ public class SignupActivity extends AppCompatActivity {
             String email = account.getEmail();
             String name = account.getDisplayName();  // This will return the user's name from the Google account
 
-
-            // Show a toast for successful login
-            Toast.makeText(this, "Successfully logged in as: " + email, Toast.LENGTH_SHORT).show();
-
             // Check if the "Create Account" button was clicked
             findViewById(R.id.createaccountbutton).setOnClickListener(v -> {
                 String username = name != null && !name.isEmpty() ? name : ((EditText) findViewById(R.id.usernameedittext)).getText().toString();
