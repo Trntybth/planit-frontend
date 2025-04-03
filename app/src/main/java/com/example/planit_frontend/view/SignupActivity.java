@@ -1,6 +1,7 @@
 package com.example.planit_frontend.view;
 
 
+import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.content.Intent;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -40,82 +42,64 @@ public class SignupActivity extends AppCompatActivity {
     private LoginActivityViewModel loginActivityViewModel;
     private GoogleSignInClient googleSignInClient;
 
-    private ActivityResultLauncher<Intent> signInLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                Log.d("LoginActivity", "Sign-in result code: " + result.getResultCode());
-                Log.e("LoginActivity", "Sign-in failed or canceled. Result code: " + result.getResultCode());
+    // Google Sign-In result launcher
+// Google Sign-In result launcher
+    private final ActivityResultLauncher<Intent> signInLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == Activity.RESULT_OK) {
+                            Intent data = result.getData();
+                            GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult();
+                            Log.d("SignupActivity", "Google Sign-In successful: " + account.getEmail());
+                        } else {
+                            Log.d("SignupActivity", "Google Sign-In failed or cancelled.");
+                        }
+                    });
 
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    try {
-                        GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(result.getData()).getResult(ApiException.class);
-                        Log.d("LoginActivity", "Sign-in successful: " + account.getEmail());
-                        Toast.makeText(this, "Signed in as: " + account.getEmail(), Toast.LENGTH_SHORT).show();
-                        handleSignIn(account);
-                    } catch (ApiException e) {
-                        Log.e("LoginActivity", "Google Sign-In failed: " + e.getStatusCode(), e);
-                        Toast.makeText(this, "Sign-In failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Log.e("LoginActivity", "Sign-in failed or canceled. Result code: " + result.getResultCode());
-                    Toast.makeText(this, "Sign-In Cancelled. Result code: " + result.getResultCode(), Toast.LENGTH_SHORT).show();
-                }
-            }
-    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Initialize ViewModel
         loginActivityViewModel = new ViewModelProvider(this).get(LoginActivityViewModel.class);
 
-        // Set up Google Sign-In options
+        // Set up Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // Check if user is already signed in
-        GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account != null) {
-            handleSignIn(account);  // Sign-in already done, proceed with member creation
-        }
-
         // Find the button
         Button signInRedirectButton = findViewById(R.id.sign_in_redirect_button);
-        signInRedirectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Redirect to LoginActivity
-                Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
-                startActivity(intent);
-            }
+        signInRedirectButton.setOnClickListener(v -> {
+            Intent intent = new Intent(SignupActivity.this, LoginActivity.class);
+            startActivity(intent);
         });
 
         // Google Sign-In Button click listener
-        // Create Account Button click listener
         findViewById(R.id.createaccountbutton).setOnClickListener(v -> {
-            Log.d("LoginActivity", "Create account button clicked");
+            Log.d("SignupActivity", "Create account button clicked");
 
             GoogleSignInAccount signedInAccount = GoogleSignIn.getLastSignedInAccount(this);
+
             if (signedInAccount == null) {
-                // If user is not signed in, ask them to sign in first
-                Toast.makeText(this, "Please sign in first", Toast.LENGTH_SHORT).show();
-                Intent signInIntent = googleSignInClient.getSignInIntent();
-                signInLauncher.launch(signInIntent);
+                // Not signed in -> Force Sign-In
+                Log.d("SignupActivity", "User not signed in. Prompting Google Sign-In.");
+                forceFullSignOutAndOpenPicker();
             } else {
-                // If user is signed in, proceed to create account
+                // Already signed in -> Proceed to account creation
+                Log.d("SignupActivity", "User already signed in: " + signedInAccount.getEmail());
+
                 String username = ((EditText) findViewById(R.id.usernameedittext)).getText().toString();
                 RadioButton memberRadioButton = findViewById(R.id.memberbutton);
                 RadioButton organisationRadioButton = findViewById(R.id.organisationbutton);
 
                 if (memberRadioButton.isChecked()) {
-                    Log.d("LoginActivity", "Member radio button selected");
+                    Log.d("SignupActivity", "Member radio button selected");
                     createMember(signedInAccount, username);
                 } else if (organisationRadioButton.isChecked()) {
-                    Log.d("LoginActivity", "Organisation radio button selected");
+                    Log.d("SignupActivity", "Organisation radio button selected");
                     createOrganisation(signedInAccount, username);
                 } else {
                     Toast.makeText(this, "Please select Member or Organisation.", Toast.LENGTH_SHORT).show();
@@ -124,6 +108,49 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Force sign-out, revoke access, and open the Google Sign-In account picker.
+     */
+    private void forceFullSignOutAndOpenPicker() {
+        googleSignInClient.revokeAccess().addOnCompleteListener(this, revokeTask -> {
+            Log.d("SignupActivity", "Google Sign-In fully revoked.");
+
+            googleSignInClient.signOut().addOnCompleteListener(this, signOutTask -> {
+                Log.d("SignupActivity", "Signed out completely.");
+
+                // Open Google account picker (forces fresh sign-in)
+                Intent signInIntent = googleSignInClient.getSignInIntent();
+                signInIntent.putExtra("force_code_for_refresh_token", true); // Ensures full reset
+                signInLauncher.launch(signInIntent);
+            });
+        });
+    }
+
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        resetGoogleSignIn(null); // Reset sign-in on every visit
+    }
+
+
+
+    /**
+     * Ensures Google Sign-In is fully reset before proceeding.
+     * Calls onResetComplete.run() when done (if not null).
+     */
+
+
+    private void resetGoogleSignIn(@Nullable Runnable onResetComplete) {
+        googleSignInClient.signOut().addOnCompleteListener(this, task -> {
+            googleSignInClient.revokeAccess().addOnCompleteListener(this, revokeTask -> {
+                Log.d("SignupActivity", "Google Sign-In fully reset.");
+                if (onResetComplete != null) {
+                    onResetComplete.run(); // Proceed only after reset
+                }
+            });
+        });
+    }
 
     private void handleSignIn(GoogleSignInAccount account) {
         if (account != null) {
