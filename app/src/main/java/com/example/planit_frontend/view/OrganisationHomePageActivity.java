@@ -81,7 +81,7 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
 
         if (email != null) {
             // Call the API to get events for this specific email
-            Call<List<Event>> call = apiService.getEventsForOrganisationsByEmail(email);
+            Call<List<Event>> call = apiService.getEventsByEmail(email);
 
             call.enqueue(new Callback<List<Event>>() {
                 @Override

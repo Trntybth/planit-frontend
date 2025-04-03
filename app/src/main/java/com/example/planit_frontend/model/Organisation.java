@@ -11,17 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Organisation extends User {
-    private List<Event> eventsCreated;
-
-    // getter and setter
-    public List<Event> getEventsCreated() {
-        return eventsCreated;
-    }
-
-    public void setEventsCreated(List<Event> eventsCreated) {
-        this.eventsCreated = eventsCreated;
-    }
-
 
     // constructor to create an Organisation object using Google Sign-In info and user input
     public Organisation(String username, String email, String name) {
@@ -29,7 +18,6 @@ public class Organisation extends User {
         this.setName(name);               // Optionally, set name from Google if available
         this.setEmail(email);     // Set the email from Google
         this.setUserType("Organisation");  // Set user type to "Organisation"
-        this.eventsCreated = new ArrayList<>();  // Initialize with an empty list
     }
 
 }

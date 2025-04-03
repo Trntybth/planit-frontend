@@ -29,15 +29,15 @@ public interface ApiService {
     @PUT("organisations/email/{email}/events")
     Call<Organisation> addEventToOrganisation(@Path("email") String email, @Body Event event);
 
-    @GET("organisations/email/{email}/events") /* get the eventList from the organisation */
-    Call<List<Event>> getEventsForOrganisationsByEmail(@Path("email") String email);
-
     // events
     @POST("events/events")
     Call<Event> createEvent(@Body Event event);
 
     @PUT("/events/{eventId}")
     Call<ApiResponse<Event>> updateEvent(@Path("eventId") String eventId, @Body Event updatedEvent);
+
+    @GET("events/events/{email}")
+    Call<List<Event>> getEventsByEmail(@Path("email") String email);
 
 
     // users
