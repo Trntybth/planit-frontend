@@ -115,9 +115,26 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
 
     @Override
     public void onUpdateClick(Event event) {
+        // Log the event details to check what's being passed
+        Log.d("UpdateEvent", "Event ID: " + event.getId());
+        Log.d("UpdateEvent", "Event Name: " + event.getName());
+        Log.d("UpdateEvent", "Event Description: " + event.getDescription());
+        Log.d("UpdateEvent", "Event Location: " + event.getLocation());
+        Log.d("UpdateEvent", "Event Date: " + event.getDate());
+
         // Handle the update button click
         Toast.makeText(this, "Update event: " + event.getName(), Toast.LENGTH_SHORT).show();
+
+        // Create an Intent to open UpdateEventActivity and pass the event details
+        Intent intent = new Intent(this, UpdateEventActivity.class);
+        intent.putExtra("eventId", event.getId());  // Pass eventId to the next activity
+        intent.putExtra("eventName", event.getName());  // Pass event name if necessary
+        intent.putExtra("eventDescription", event.getDescription());  // Pass event description if necessary
+        intent.putExtra("eventLocation", event.getLocation());  // Pass event location if necessary
+        intent.putExtra("eventDate", event.getDate());  // Pass event date if necessary
+        startActivity(intent);
     }
+
 
 
 }

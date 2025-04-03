@@ -3,6 +3,7 @@ package com.example.planit_frontend.view;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -33,13 +34,19 @@ public class UpdateEventActivity extends AppCompatActivity {
 
     private ApiService apiService;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_updateevent);
 
         // Get event ID passed from previous activity
-        eventId = getIntent().getStringExtra("event_id");
+        eventId = getIntent().getStringExtra("eventId"); // Retrieve the eventId passed from the previous activity
+        if (eventId == null) {
+            Log.e("UpdateEvent", "Event ID is missing. Cannot update event.");
+            Toast.makeText(this, "Event ID is missing. Cannot update event.", Toast.LENGTH_SHORT).show();
+            return; // Exit if eventId is missing
+        }
 
         // Initialize UI elements
         eventNameEditText = findViewById(R.id.eventName);
@@ -85,22 +92,43 @@ public class UpdateEventActivity extends AppCompatActivity {
         String updatedName = eventNameEditText.getText().toString().trim();
         String updatedDescription = eventDescriptionEditText.getText().toString().trim();
         String updatedLocation = eventLocationEditText.getText().toString().trim();
+        String updatedDate = eventDateTextView.getText().toString().trim();
 
-        if (updatedName.isEmpty() || updatedDescription.isEmpty() || updatedDate == null) {
-            Toast.makeText(this, "Fields cannot be empty!", Toast.LENGTH_SHORT).show();
+        if (updatedName.isEmpty() || updatedDescription.isEmpty() || updatedLocation.isEmpty() || updatedDate.isEmpty()) {
+            Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        Event updatedEvent = new Event(eventId, updatedName, updatedDescription, updatedLocation, updatedDate);
+        Event updatedEvent = new Event(updatedName, updatedDescription, updatedLocation, updatedDate);
 
-        apiService.updateEventById(eventId, updatedEvent).enqueue(new Callback<ApiResponse<Event>>() {
+        // Log the eventId to verify it's being passed correctly
+        Log.d("UpdateEvent", "Event ID before PUT: " + eventId);
+        Log.d("UpdateEvent", "Updated Event Name: " + updatedName);
+        Log.d("UpdateEvent", "Updated Event Description: " + updatedDescription);
+        Log.d("UpdateEvent", "Updated Event Location: " + updatedLocation);
+        Log.d("UpdateEvent", "Updated Event Date: " + updatedDate);
+
+        // Log the full updatedEvent object (requires toString() method in the Event class)
+        Log.d("UpdateEvent", "Updated Event Object: " + updatedEvent.toString());
+
+        if (eventId == null) {
+            Log.e("UpdateEvent", "Event ID is null. Cannot update event.");
+            return;  // Prevent the request if eventId is null
+        }
+
+        // Make the PUT request to update the event
+        ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+        apiService.updateEvent(eventId, updatedEvent).enqueue(new Callback<ApiResponse<Event>>() {
             @Override
             public void onResponse(Call<ApiResponse<Event>> call, Response<ApiResponse<Event>> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().isSuccess()) {
-                    Toast.makeText(UpdateEventActivity.this, "Event updated successfully!", Toast.LENGTH_SHORT).show();
-                    navigateBack();
+                if (response.isSuccessful() && response.body() != null) {
+                    ApiResponse<Event> apiResponse = response.body();
+                    // Now you can access the Event from the ApiResponse
+                    Event updatedEventResponse = apiResponse.getData();
+                    Toast.makeText(UpdateEventActivity.this, "Event updated successfully", Toast.LENGTH_SHORT).show();
+                    finish();  // Close this activity and return to the previous one
                 } else {
-                    Toast.makeText(UpdateEventActivity.this, "Update failed, try again!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(UpdateEventActivity.this, "Failed to update event", Toast.LENGTH_SHORT).show();
                 }
             }
 

@@ -14,7 +14,7 @@ public class Event {
     private String date;
 
 
-
+    // full constructor
     public Event(String name, String description, String location, String creator, String date) {
         this.name = name;
         this.description = description;
@@ -23,6 +23,14 @@ public class Event {
         this.date = date;
     }
 
+
+    // Constructor that takes update fields
+    public Event(String name, String description, String location, String date) {
+        this.name = name;
+        this.description = description;
+        this.location = location;
+        this.date = date;
+    }
 
     public String getId() {
         return id;

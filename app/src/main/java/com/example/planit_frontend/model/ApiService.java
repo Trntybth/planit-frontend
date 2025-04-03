@@ -37,8 +37,9 @@ public interface ApiService {
     @POST("events/events")
     Call<Event> createEvent(@Body Event event);
 
-    @PUT("events/{id}")
-    Call<ApiResponse<Event>> updateEventById(@Path("id") String id, @Body Event event);
+    @PUT("/events/{eventId}")
+    Call<ApiResponse<Event>> updateEvent(@Path("eventId") String eventId, @Body Event updatedEvent);
+
 
     // users
 
