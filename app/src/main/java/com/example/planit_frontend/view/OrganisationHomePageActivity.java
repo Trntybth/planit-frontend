@@ -16,7 +16,6 @@ import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Event;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.SessionManager;
-import com.example.planit_frontend.view.EventAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,25 +76,33 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
     }
 
     private void fetchOrganisationEvents() {
-        // Replace 'username' with 'email' in the API call
-        String email = sessionManager.getActiveEmail();  // Retrieve the email from session
+        // Retrieve the logged-in user's email from SessionManager
+        String email = sessionManager.getActiveEmail();
+
         if (email != null) {
-            Call<List<Event>> call = apiService.getEventsForOrganisationsByEmail(email);  // API call by email
+            // Call the API to get events for this specific email
+            Call<List<Event>> call = apiService.getEventsForOrganisationsByEmail(email);
 
             call.enqueue(new Callback<List<Event>>() {
                 @Override
                 public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                     if (response.isSuccessful() && response.body() != null) {
+                        Log.d("API Response", "Events: " + response.body().toString());  // Log the events returned from the API
                         eventsList.clear();
-                        eventsList.addAll(response.body());
-                        // Pass both parameters to the adapter
+                        // Filter the events based on the logged-in user's email
+                        for (Event event : response.body()) {
+                            Log.d("Event", "Event CreatorEmail: " + event.getCreatorEmail());  // Log the creatorEmail
+                            if (event.getCreatorEmail() != null && event.getCreatorEmail().equals(email)) {
+                                eventsList.add(event);
+                            }
+                        }
                         eventsAdapter = new EventAdapter(eventsList, OrganisationHomePageActivity.this);
                         eventsRecyclerView.setAdapter(eventsAdapter);
                     } else {
-                        // Handle failure (e.g. show an error message)
                         Log.e("Error", "Failed to load events.");
                     }
                 }
+
 
                 @Override
                 public void onFailure(Call<List<Event>> call, Throwable t) {
@@ -106,6 +113,8 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
             Log.e("Error", "Email is null.");
         }
     }
+
+
 
     @Override
     public void onItemClick(Event event) {

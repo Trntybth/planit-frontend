@@ -104,7 +104,7 @@ public class CreateEventActivity extends AppCompatActivity {
                 "Name: " + event.getName() + ", " +
                 "Description: " + event.getDescription() + ", " +
                 "Location: " + event.getLocation() + ", " +
-                "Creator: " + event.getCreator() + ", " +
+                "Creator: " + event.getCreatorEmail() + ", " +
                 "Date: " + event.getDate());
 
         // Make POST request to create the event in the events table

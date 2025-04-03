@@ -32,7 +32,6 @@ public interface ApiService {
     @GET("organisations/email/{email}/events") /* get the eventList from the organisation */
     Call<List<Event>> getEventsForOrganisationsByEmail(@Path("email") String email);
 
-
     // events
     @POST("events/events")
     Call<Event> createEvent(@Body Event event);
@@ -55,8 +54,6 @@ public interface ApiService {
 
     @GET("users/email/{email}")
     Call<ApiResponse<Organisation>> getOrganisationByEmail(@Path("email") String email);
-
-
 
 
     // get the usertype

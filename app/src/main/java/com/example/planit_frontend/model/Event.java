@@ -1,25 +1,21 @@
 package com.example.planit_frontend.model;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 public class Event {
 
     private String id;
     private String name;
     private String description;
     private String location;
-    private String creator;
+    private String creatorEmail;
     private String date;
 
 
     // full constructor
-    public Event(String name, String description, String location, String creator, String date) {
+    public Event(String name, String description, String location, String creatorEmail, String date) {
         this.name = name;
         this.description = description;
         this.location = location;
-        this.creator = creator;
+        this.creatorEmail = creatorEmail;
         this.date = date;
     }
 
@@ -64,12 +60,12 @@ public class Event {
         this.location = location;
     }
 
-    public String getCreator() {
-        return creator;
+    public String getCreatorEmail() {
+        return creatorEmail;
     }
 
-    public void setCreator(String creator) {
-        this.creator = creator;
+    public void setCreatorEmail(String creatorEmail) {
+        this.creatorEmail = creatorEmail;
     }
 
     public String getDate() {

@@ -23,7 +23,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
 public class UpdateEventActivity extends AppCompatActivity {
 
     private EditText eventNameEditText, eventDescriptionEditText, eventLocationEditText;
@@ -34,14 +33,13 @@ public class UpdateEventActivity extends AppCompatActivity {
 
     private ApiService apiService;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_updateevent);
 
         // Get event ID passed from previous activity
-        eventId = getIntent().getStringExtra("eventId"); // Retrieve the eventId passed from the previous activity
+        eventId = getIntent().getStringExtra("eventId");
         if (eventId == null) {
             Log.e("UpdateEvent", "Event ID is missing. Cannot update event.");
             Toast.makeText(this, "Event ID is missing. Cannot update event.", Toast.LENGTH_SHORT).show();
@@ -80,7 +78,6 @@ public class UpdateEventActivity extends AppCompatActivity {
         DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, selectedYear, selectedMonth, selectedDay) -> {
             // Format the selected date as a String (yyyy-MM-dd)
             updatedDate = String.format("%04d-%02d-%02d", selectedYear, selectedMonth + 1, selectedDay); // Format as "yyyy-MM-dd"
-
             // Display the formatted date in the TextView
             eventDateTextView.setText(updatedDate);
         }, year, month, day);
@@ -89,42 +86,26 @@ public class UpdateEventActivity extends AppCompatActivity {
     }
 
     private void updateEvent() {
+        // Get the updated data from the UI (e.g., EditText fields)
         String updatedName = eventNameEditText.getText().toString().trim();
         String updatedDescription = eventDescriptionEditText.getText().toString().trim();
         String updatedLocation = eventLocationEditText.getText().toString().trim();
         String updatedDate = eventDateTextView.getText().toString().trim();
 
+        // Check if any field is empty
         if (updatedName.isEmpty() || updatedDescription.isEmpty() || updatedLocation.isEmpty() || updatedDate.isEmpty()) {
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        // Create an Event object with the updated data
         Event updatedEvent = new Event(updatedName, updatedDescription, updatedLocation, updatedDate);
 
-        // Log the eventId to verify it's being passed correctly
-        Log.d("UpdateEvent", "Event ID before PUT: " + eventId);
-        Log.d("UpdateEvent", "Updated Event Name: " + updatedName);
-        Log.d("UpdateEvent", "Updated Event Description: " + updatedDescription);
-        Log.d("UpdateEvent", "Updated Event Location: " + updatedLocation);
-        Log.d("UpdateEvent", "Updated Event Date: " + updatedDate);
-
-        // Log the full updatedEvent object (requires toString() method in the Event class)
-        Log.d("UpdateEvent", "Updated Event Object: " + updatedEvent.toString());
-
-        if (eventId == null) {
-            Log.e("UpdateEvent", "Event ID is null. Cannot update event.");
-            return;  // Prevent the request if eventId is null
-        }
-
-        // Make the PUT request to update the event
-        ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+        // Call the API to update the event
         apiService.updateEvent(eventId, updatedEvent).enqueue(new Callback<ApiResponse<Event>>() {
             @Override
             public void onResponse(Call<ApiResponse<Event>> call, Response<ApiResponse<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    ApiResponse<Event> apiResponse = response.body();
-                    // Now you can access the Event from the ApiResponse
-                    Event updatedEventResponse = apiResponse.getData();
                     Toast.makeText(UpdateEventActivity.this, "Event updated successfully", Toast.LENGTH_SHORT).show();
                     finish();  // Close this activity and return to the previous one
                 } else {
@@ -137,13 +118,5 @@ public class UpdateEventActivity extends AppCompatActivity {
                 Toast.makeText(UpdateEventActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-
-    private void navigateBack() {
-        Intent intent = new Intent(this, OrganisationHomePageActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
     }
 }

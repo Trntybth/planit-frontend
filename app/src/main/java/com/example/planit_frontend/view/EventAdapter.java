@@ -68,10 +68,4 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     }
 
 
-    public void updateEvents(List<Event> newEvents) {
-        this.eventsList.clear(); // Clear the current list
-        this.eventsList.addAll(newEvents); // Add new data
-        notifyDataSetChanged(); // Notify RecyclerView to refresh
-    }
-
 }
