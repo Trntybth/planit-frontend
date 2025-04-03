@@ -8,6 +8,7 @@ import java.util.List;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.POST;
 import retrofit2.http.GET;
 import retrofit2.http.PUT;
@@ -39,6 +40,8 @@ public interface ApiService {
     @GET("events/events/{email}")
     Call<List<Event>> getEventsByEmail(@Path("email") String email);
 
+    @DELETE("events/{eventId}")
+    Call<Void> deleteEvent(@Path("eventId") String eventId);
 
     // users
 

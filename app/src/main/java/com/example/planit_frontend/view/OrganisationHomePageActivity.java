@@ -144,6 +144,37 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
         startActivity(intent);
     }
 
+    @Override
+    public void onDeleteClick(Event event) {
+        // Show a confirmation message to the user (optional)
+        Toast.makeText(this, "Deleting event: " + event.getName(), Toast.LENGTH_SHORT).show();
+
+        // Call the API to delete the event from the backend
+        Call<Void> deleteCall = apiService.deleteEvent(event.getId());  // Assuming you have a deleteEvent method in ApiService
+
+        deleteCall.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    // If the deletion is successful, remove the event from the list and notify the adapter
+                    eventsList.remove(event);  // Remove the event from the list
+                    eventsAdapter.notifyDataSetChanged();  // Notify the adapter that the data has changed
+
+                    // Show a success message
+                    Toast.makeText(OrganisationHomePageActivity.this, "Event deleted successfully", Toast.LENGTH_SHORT).show();
+                } else {
+                    // If the deletion failed (e.g., event not found), show an error message
+                    Toast.makeText(OrganisationHomePageActivity.this, "Failed to delete event", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                // If the network call fails, show an error message
+                Toast.makeText(OrganisationHomePageActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 
 }

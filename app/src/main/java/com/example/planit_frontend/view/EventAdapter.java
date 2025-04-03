@@ -22,7 +22,8 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
     // Define the OnItemClickListener interface
     public interface OnItemClickListener {
         void onItemClick(Event event);
-        void onUpdateClick(Event event); // New method for update button click
+        void onUpdateClick(Event event); // Method for update button click
+        void onDeleteClick(Event event); // New method for delete button click
     }
 
     public EventAdapter(List<Event> eventsList, OnItemClickListener listener) {
@@ -36,7 +37,6 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         return new EventViewHolder(view);
     }
 
-
     @Override
     public int getItemCount() {
         return eventsList.size();
@@ -47,6 +47,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         TextView eventDescriptionTextView;
         TextView eventLocationTextView; // New field
         Button updateButton;
+        Button deleteButton; // New field for delete button
 
         public EventViewHolder(View itemView) {
             super(itemView);
@@ -54,6 +55,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
             eventDescriptionTextView = itemView.findViewById(R.id.eventDescriptionTextView);
             eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView); // Add this in your XML layout
             updateButton = itemView.findViewById(R.id.updateButton);
+            deleteButton = itemView.findViewById(R.id.deleteButton); // Initialize delete button
         }
     }
 
@@ -65,7 +67,9 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         holder.eventLocationTextView.setText(event.getLocation()); // Bind location
 
         holder.updateButton.setOnClickListener(v -> listener.onUpdateClick(event));
-    }
 
+        // Set up the delete button
+        holder.deleteButton.setOnClickListener(v -> listener.onDeleteClick(event));
+    }
 
 }
