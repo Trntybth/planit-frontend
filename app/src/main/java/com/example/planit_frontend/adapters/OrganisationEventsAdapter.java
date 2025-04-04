@@ -1,4 +1,4 @@
-package com.example.planit_frontend.view;
+package com.example.planit_frontend.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;

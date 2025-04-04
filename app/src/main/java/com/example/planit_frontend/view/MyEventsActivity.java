@@ -9,6 +9,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.planit_frontend.R;
+import com.example.planit_frontend.adapters.MyEventsAdapter;
 import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Event;
 import com.example.planit_frontend.model.RetrofitInstance;

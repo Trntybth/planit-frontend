@@ -1,27 +1,18 @@
-package com.example.planit_frontend.view;
+package com.example.planit_frontend.adapters;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.planit_frontend.R;
-import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Event;
-import com.example.planit_frontend.model.RetrofitInstance;
 
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.EventViewHolder> {
 

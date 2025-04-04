@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -23,15 +22,11 @@ import com.example.planit_frontend.model.Member;
 import com.example.planit_frontend.model.Organisation;
 import com.example.planit_frontend.model.RetrofitInstance;
 import com.example.planit_frontend.model.ApiService;
-import com.example.planit_frontend.viewmodel.LoginActivityViewModel;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
 import com.google.gson.Gson;
-
-import java.io.IOException;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,7 +34,6 @@ import retrofit2.Response;
 
 public class SignupActivity extends AppCompatActivity {
 
-    private LoginActivityViewModel loginActivityViewModel;
     private GoogleSignInClient googleSignInClient;
 
     // Google Sign-In result launcher
@@ -62,7 +56,6 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        loginActivityViewModel = new ViewModelProvider(this).get(LoginActivityViewModel.class);
 
         // Set up Google Sign-In
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
