@@ -13,7 +13,7 @@ import com.example.planit_frontend.model.Event;
 
 import java.util.List;
 
-public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHolder> {
+public class OrganisationEventsAdapter extends RecyclerView.Adapter<OrganisationEventsAdapter.EventViewHolder> {
 
     private List<Event> eventsList;
     private OnItemClickListener listener;
@@ -25,7 +25,7 @@ public class EventAdapter extends RecyclerView.Adapter<EventAdapter.EventViewHol
         void onDeleteClick(Event event); // New method for delete button click
     }
 
-    public EventAdapter(List<Event> eventsList, OnItemClickListener listener) {
+    public OrganisationEventsAdapter(List<Event> eventsList, OnItemClickListener listener) {
         this.eventsList = eventsList;
         this.listener = listener;
     }

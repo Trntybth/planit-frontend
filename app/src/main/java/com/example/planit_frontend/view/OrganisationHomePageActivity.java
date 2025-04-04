@@ -24,10 +24,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class OrganisationHomePageActivity extends AppCompatActivity implements EventAdapter.OnItemClickListener {
+public class OrganisationHomePageActivity extends AppCompatActivity implements OrganisationEventsAdapter.OnItemClickListener {
 
     private RecyclerView eventsRecyclerView;
-    private EventAdapter eventsAdapter;
+    private OrganisationEventsAdapter eventsAdapter;
     private List<Event> eventsList = new ArrayList<>();
     private ApiService apiService;
     private String username;  // Assuming you get the username of the logged-in user
@@ -97,7 +97,7 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements E
                                 eventsList.add(event);
                             }
                         }
-                        eventsAdapter = new EventAdapter(eventsList, OrganisationHomePageActivity.this);
+                        eventsAdapter = new OrganisationEventsAdapter(eventsList, OrganisationHomePageActivity.this);
                         eventsRecyclerView.setAdapter(eventsAdapter);
                     } else {
                         Log.e("Error", "Failed to load events.");
