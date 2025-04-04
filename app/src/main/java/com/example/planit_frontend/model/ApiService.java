@@ -71,15 +71,15 @@ public interface ApiService {
 
     // sign up
 
-    @POST("/events/signup/sign-up")
+    @POST("events/signup/sign-up")
     Call<ResponseBody> signUpForEvent(
             @Query("memberEmail") String memberEmail,     // memberEmail as a query parameter
             @Query("eventId") String eventId,             // eventId as a query parameter
             @Body SignUpRequest signUpRequest             // The body contains the signup data
     );
 
-//    @POST("events/signup/sign-up")
-//    Call<String> signUpForEvent(@Query("memberEmail") String memberEmail, @Query("eventId") String eventId);
+    @GET("events/signup/signed-up-events")
+    Call<List<Event>> getSignedUpEvents(@Query("memberEmail") String memberEmail);
 
 }
 
