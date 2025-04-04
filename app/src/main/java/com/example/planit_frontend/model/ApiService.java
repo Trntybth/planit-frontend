@@ -31,6 +31,12 @@ public interface ApiService {
     Call<Organisation> addEventToOrganisation(@Path("email") String email, @Body Event event);
 
     // events
+
+    /* get all events */
+
+    @GET("events") // Replace with your actual endpoint URL
+    Call<List<Event>> getAllEvents();
+
     @POST("events/events")
     Call<Event> createEvent(@Body Event event);
 

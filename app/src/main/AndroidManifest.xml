@@ -30,6 +30,7 @@
         <activity android:name=".view.CreateEventActivity" />
         <activity android:name=".view.LoginActivity"/>
         <activity android:name=".view.UpdateEventActivity" />
+        <activity android:name=".view.MyEventsActivity" />
             />
 
     </application>
