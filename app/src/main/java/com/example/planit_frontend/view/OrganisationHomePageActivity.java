@@ -41,34 +41,35 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements O
         setContentView(R.layout.activity_organisationhomepage);
 
         sessionManager = new SessionManager(this);
+
+        // Initialize RecyclerView
         eventsRecyclerView = findViewById(R.id.eventsRecyclerView);
         eventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Initialize API service
         apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+
+        // Initialize the adapter with an empty events list
+        eventsAdapter = new OrganisationEventsAdapter(eventsList, OrganisationHomePageActivity.this);
+        eventsRecyclerView.setAdapter(eventsAdapter); // Attach the adapter to the RecyclerView
 
         // Fetch events
         fetchOrganisationEvents();
 
         // Create Event Button
         Button createEventButton = findViewById(R.id.createNewEventButton);
-        createEventButton.setOnClickListener(this::onCreateEventClicked);
+        createEventButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onCreateEventClicked(v); // Explicitly call the onCreateEventClicked method
+            }
+        });
+
 
         // Logout Button
         Button logoutButton = findViewById(R.id.logoutButtonOrg);
-        logoutButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                logoutUser();
-            }
-        });
+        logoutButton.setOnClickListener(v -> logoutUser());
     }
-
-    public void onCreateEventClicked(View view) {
-        // Navigate to CreateEventActivity to create a new event
-        Intent intent = new Intent(this, CreateEventActivity.class);
-        startActivity(intent);
-    }
-
 
     @Override
     protected void onResume() {
@@ -90,7 +91,7 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements O
                 public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         Log.d("API Response", "Events: " + response.body().toString());  // Log the events returned from the API
-                        eventsList.clear();
+                        eventsList.clear(); // Clear the existing list
                         // Filter the events based on the logged-in user's email
                         for (Event event : response.body()) {
                             Log.d("Event", "Event CreatorEmail: " + event.getCreatorEmail());  // Log the creatorEmail
@@ -98,13 +99,12 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements O
                                 eventsList.add(event);
                             }
                         }
-                        eventsAdapter = new OrganisationEventsAdapter(eventsList, OrganisationHomePageActivity.this);
-                        eventsRecyclerView.setAdapter(eventsAdapter);
+                        // Notify the adapter that the data has changed
+                        eventsAdapter.notifyDataSetChanged();
                     } else {
                         Log.e("Error", "Failed to load events.");
                     }
                 }
-
 
                 @Override
                 public void onFailure(Call<List<Event>> call, Throwable t) {
@@ -115,8 +115,6 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements O
             Log.e("Error", "Email is null.");
         }
     }
-
-
 
     @Override
     public void onItemClick(Event event) {
@@ -188,4 +186,9 @@ public class OrganisationHomePageActivity extends AppCompatActivity implements O
         startActivity(intent);
     }
 
+    public void onCreateEventClicked(View view) {
+        // Navigate to CreateEventActivity to create a new event
+        Intent intent = new Intent(this, CreateEventActivity.class);
+        startActivity(intent);
+    }
 }

@@ -47,7 +47,7 @@
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/eventCreatorTextView"
+            android:id="@+id/creatorEmailTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Event Creator"
@@ -79,4 +79,14 @@
                 android:textStyle="bold" />
 
         </LinearLayout>
+
+        <Button
+            android:id="@+id/addToCalendarButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Add to Google Calendar"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/eventDateTextView" />
     </LinearLayout></androidx.cardview.widget.CardView>

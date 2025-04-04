@@ -71,15 +71,24 @@ public interface ApiService {
 
     // sign up
 
-    @POST("events/signup/sign-up")
+    @POST("events/signup/signup")
     Call<ResponseBody> signUpForEvent(
-            @Query("memberEmail") String memberEmail,     // memberEmail as a query parameter
-            @Query("eventId") String eventId,             // eventId as a query parameter
-            @Body SignUpRequest signUpRequest             // The body contains the signup data
+            @Query("memberEmail") String memberEmail,
+            @Query("eventId") String eventId,
+            @Body SignUpRequest signUpRequest
     );
+
 
     @GET("events/signup/signed-up-events")
     Call<List<Event>> getSignedUpEvents(@Query("memberEmail") String memberEmail);
+
+    // add remove one
+    @POST("events/signup/un-sign-up")
+    Call<ResponseBody> removeEventSignup(
+            @Query("memberEmail") String memberEmail,
+            @Query("eventId") String eventId
+    );
+
 
 }
 

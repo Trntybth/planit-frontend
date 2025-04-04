@@ -33,7 +33,6 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.Even
 
     @Override
     public EventViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        // Inflate the layout for each item (e.g., item_signup_event.xml)
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_allevents, parent, false);
         return new EventViewHolder(view);
     }
@@ -45,10 +44,12 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.Even
         holder.eventNameTextView.setText(event.getName());
         holder.eventDescriptionTextView.setText(event.getDescription());
         holder.eventLocationTextView.setText(event.getLocation());
+        holder.creatorEmailTextView.setText(event.getCreatorEmail());
         holder.eventDateTextView.setText(event.getDate());
 
+
         holder.addToMyEventsButton.setOnClickListener(v -> {
-            listener.onAddToMyEventsClick(event); // Pass event to listener
+            listener.onAddToMyEventsClick(event);
         });
     }
 
@@ -61,6 +62,7 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.Even
         TextView eventNameTextView;
         TextView eventDescriptionTextView;
         TextView eventLocationTextView;
+        TextView creatorEmailTextView;
         TextView eventDateTextView;
         Button addToMyEventsButton;
 
@@ -69,6 +71,7 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.Even
             eventNameTextView = itemView.findViewById(R.id.eventNameTextView);
             eventDescriptionTextView = itemView.findViewById(R.id.eventDescriptionTextView);
             eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView);
+            creatorEmailTextView = itemView.findViewById(R.id.creatorEmailTextView);
             eventDateTextView = itemView.findViewById(R.id.eventDateTextView);
             addToMyEventsButton = itemView.findViewById(R.id.addButton);
         }

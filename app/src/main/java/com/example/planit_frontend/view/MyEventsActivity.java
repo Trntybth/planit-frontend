@@ -1,6 +1,7 @@
 package com.example.planit_frontend.view;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -18,6 +19,7 @@ import com.example.planit_frontend.model.SessionManager;
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -29,6 +31,8 @@ public class MyEventsActivity extends AppCompatActivity {
     private MyEventsAdapter myEventsAdapter;
     private List<Event> events;
     private String memberEmail;
+    private ApiService apiService;
+    private SessionManager sessionManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,29 +42,28 @@ public class MyEventsActivity extends AppCompatActivity {
         myEventsRecyclerView = findViewById(R.id.myEventsRecyclerView);
         myEventsRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         events = new ArrayList<>();
+
+        // Initialize SessionManager and get the active member email
+        sessionManager = new SessionManager(this);
+        memberEmail = sessionManager.getActiveEmail();  // Retrieve the active email from session manager
+
+        // Initialize ApiService
+        apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+
+        // Initialize the adapter with the events list and context
         myEventsAdapter = new MyEventsAdapter(events, this);
         myEventsRecyclerView.setAdapter(myEventsAdapter);
-
-        // Get the active member email using the session manager
-        SessionManager sessionManager = new SessionManager(this); // Assuming your SessionManager class is used to handle session data
-        memberEmail = sessionManager.getActiveEmail();  // Retrieve the active email from session manager
 
         // Load the events for this user
         loadSignedUpEvents();
 
         // Set up the "Go Back" button functionality
-        Button goBackButton = findViewById(R.id.GoBackButton); // Ensure you have this button in your layout
+        Button goBackButton = findViewById(R.id.GoBackButton);
         goBackButton.setOnClickListener(v -> onBackPressed());
     }
 
-    private void loadSignedUpEvents() {
-        // Use the RetrofitInstance you already have
-        Retrofit retrofit = RetrofitInstance.getRetrofitInstance();
-
-        // Create the ApiService from the retrofit instance
-        ApiService apiService = retrofit.create(ApiService.class);
-
-        // Call the API with the member email
+    public void loadSignedUpEvents() {
+        // Use the RetrofitInstance to get events from the backend
         Call<List<Event>> call = apiService.getSignedUpEvents(memberEmail);
 
         // Enqueue the API call
@@ -68,8 +71,13 @@ public class MyEventsActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Event>> call, Response<List<Event>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    events.clear();
-                    events.addAll(response.body());
+                    List<Event> newEvents = response.body();
+                    // Prevent duplicates by checking if event already exists in the list
+                    for (Event event : newEvents) {
+                        if (!events.contains(event)) {
+                            events.add(event);
+                        }
+                    }
                     myEventsAdapter.notifyDataSetChanged();
                 } else {
                     // Handle case where no events are found
@@ -84,4 +92,6 @@ public class MyEventsActivity extends AppCompatActivity {
             }
         });
     }
+
+
 }

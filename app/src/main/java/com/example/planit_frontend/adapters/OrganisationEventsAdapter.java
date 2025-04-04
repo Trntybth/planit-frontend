@@ -1,5 +1,6 @@
 package com.example.planit_frontend.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -45,6 +46,9 @@ public class OrganisationEventsAdapter extends RecyclerView.Adapter<Organisation
         TextView eventNameTextView;
         TextView eventDescriptionTextView;
         TextView eventLocationTextView; // New field
+        TextView eventCreatorTextView;
+
+        TextView eventDateTextView;
         Button updateButton;
         Button deleteButton; // New field for delete button
 
@@ -52,18 +56,28 @@ public class OrganisationEventsAdapter extends RecyclerView.Adapter<Organisation
             super(itemView);
             eventNameTextView = itemView.findViewById(R.id.eventNameTextView);
             eventDescriptionTextView = itemView.findViewById(R.id.eventDescriptionTextView);
-            eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView); // Add this in your XML layout
+            eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView);
+            eventCreatorTextView = itemView.findViewById(R.id.creatorEmailTextView);
+            eventDateTextView = itemView.findViewById(R.id.eventDateTextView);
+
             updateButton = itemView.findViewById(R.id.updateButton);
-            deleteButton = itemView.findViewById(R.id.deleteButton); // Initialize delete button
+            deleteButton = itemView.findViewById(R.id.deleteButton);
         }
     }
 
     @Override
     public void onBindViewHolder(EventViewHolder holder, int position) {
         Event event = eventsList.get(position);
+
+        Log.d("OrganisationEventsAdapter", "Creator Email: " + event.getCreatorEmail());
+
+
         holder.eventNameTextView.setText(event.getName());
         holder.eventDescriptionTextView.setText(event.getDescription());
-        holder.eventLocationTextView.setText(event.getLocation()); // Bind location
+        holder.eventLocationTextView.setText(event.getLocation());
+        holder.eventCreatorTextView.setText(event.getCreatorEmail());
+
+        holder.eventDateTextView.setText(event.getDate());
 
         holder.updateButton.setOnClickListener(v -> listener.onUpdateClick(event));
 

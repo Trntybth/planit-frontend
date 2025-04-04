@@ -32,6 +32,7 @@ public class MemberHomePageActivity extends AppCompatActivity {
     private RecyclerView recyclerViewAllEvents;
     private AllEventsAdapter allEventsAdapter;
     private List<Event> eventList = new ArrayList<>();
+    private ApiService apiService; // ✅ clearly declare ApiService
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +40,9 @@ public class MemberHomePageActivity extends AppCompatActivity {
         setContentView(R.layout.activity_memberhomepage);
 
         sessionManager = new SessionManager(this);
+
+        // ✅ Clearly initialize apiService here
+        apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
 
         recyclerViewAllEvents = findViewById(R.id.allEventsRecyclerView);
         recyclerViewAllEvents.setLayoutManager(new LinearLayoutManager(this));
@@ -88,36 +92,30 @@ public class MemberHomePageActivity extends AppCompatActivity {
     }
 
     private void addEventToMyEvents(Event event) {
-        // Get the values you need
         String memberEmail = sessionManager.getActiveEmail();
-        String eventId = event.getId(); // Assuming you have the eventId from somewhere
-
-    // Create the request body with signup set to true
+        String eventId = event.getId();
         SignUpRequest signUpRequest = new SignUpRequest(true);
 
-    // Create the ApiService instance
-        ApiService apiService = RetrofitInstance.getRetrofitInstance().create(ApiService.class);
+        apiService.signUpForEvent(memberEmail, eventId, signUpRequest)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            Toast.makeText(MemberHomePageActivity.this, "Event added to My Events", Toast.LENGTH_SHORT).show();
+                        } else {
+                            if(response.code() == 409){
+                                Toast.makeText(MemberHomePageActivity.this, "Already signed up.", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(MemberHomePageActivity.this, "Signup failed: " + response.message(), Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
 
-    // Make the API call with the eventId as a query parameter and signUpRequest as the body
-        Call<ResponseBody> call = apiService.signUpForEvent(memberEmail, eventId, signUpRequest);
-
-    // Enqueue the call to execute the API request asynchronously
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(MemberHomePageActivity.this, "Event added to My Events", Toast.LENGTH_SHORT).show();
-                } else { // backend logic ensures events cannot be added twice
-                    Toast.makeText(MemberHomePageActivity.this, "Already in your events.", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(MemberHomePageActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Toast.makeText(MemberHomePageActivity.this, "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
 
