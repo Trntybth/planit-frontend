@@ -49,6 +49,10 @@ public class MemberHomePageActivity extends AppCompatActivity {
         // Set up logout button
         Button logoutButton = findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(v -> logoutUser());
+
+        // Set up "View My Events" button
+        Button viewMyEventsButton = findViewById(R.id.viewMyEventsButton);
+        viewMyEventsButton.setOnClickListener(v -> navigateToMyEventsActivity());
     }
 
     private void logoutUser() {
@@ -93,5 +97,11 @@ public class MemberHomePageActivity extends AppCompatActivity {
     private void addEventToMyEvents(Event event) {
         // Handle the "Add to My Events" logic here, e.g., make a POST request or update a local list/database
         Toast.makeText(MemberHomePageActivity.this, "Event added to My Events", Toast.LENGTH_SHORT).show();
+    }
+
+    // Navigate to MyEventsActivity when "View My Events" button is clicked
+    private void navigateToMyEventsActivity() {
+        Intent intent = new Intent(MemberHomePageActivity.this, MyEventsActivity.class);
+        startActivity(intent); // Start MyEventsActivity
     }
 }
