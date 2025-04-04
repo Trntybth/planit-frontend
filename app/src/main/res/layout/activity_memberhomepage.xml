@@ -16,16 +16,20 @@
 
     <TextView
         android:id="@+id/eventsTextView"
-        android:layout_width="200dp"
-        android:paddingTop="50dp"
+        android:layout_width="250dp"
+        android:paddingTop="40dp"
+        android:fontFamily="monospace"
+        android:textColor="@color/pinkhot"
+        android:textStyle="bold"
+        android:textSize="16dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="16dp"
-        android:text="Hi Planit member! Here are the events you are attending:"
+        android:text="Hi Planit Member! Here are the current events available to you:"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/PlanItLogo"
         app:layout_constraintTop_toTopOf="@id/PlanItLogo" />
-
+    <!-- New Button for creating a new event -->
 
     <Button
         android:id="@+id/logoutButton"
@@ -38,5 +42,22 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/allEventsRecyclerView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="160dp"
+        android:layout_marginBottom="180dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginLeft="30dp"
+        android:padding="16dp"
+        android:scrollbars="vertical"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
