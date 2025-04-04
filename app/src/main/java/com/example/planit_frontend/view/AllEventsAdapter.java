@@ -1,33 +1,43 @@
 package com.example.planit_frontend.view;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.planit_frontend.R;
+import com.example.planit_frontend.model.ApiService;
 import com.example.planit_frontend.model.Event;
+import com.example.planit_frontend.model.RetrofitInstance;
 
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.EventViewHolder> {
 
     private List<Event> eventsList;
     private OnItemClickListener listener;
+    private Context context;
+
+    public AllEventsAdapter(List<Event> eventList, Context context, OnItemClickListener listener) {
+        this.eventsList = eventList;
+        this.context = context;
+        this.listener = listener;
+    }
 
     // Define the OnItemClickListener interface
     public interface OnItemClickListener {
-        void onAddToMyEventsClick(Event event); // Handle the "Add to My Events" button click
-    }
-
-    // Constructor to initialize the event list and listener
-    public AllEventsAdapter(List<Event> eventsList, OnItemClickListener listener) {
-        this.eventsList = eventsList;
-        this.listener = listener;
+        void onAddToMyEventsClick(Event event);
     }
 
     @Override
@@ -39,48 +49,37 @@ public class AllEventsAdapter extends RecyclerView.Adapter<AllEventsAdapter.Even
 
     @Override
     public void onBindViewHolder(EventViewHolder holder, int position) {
-        // Get the event object at the current position
         Event event = eventsList.get(position);
 
-        // Bind data to views
         holder.eventNameTextView.setText(event.getName());
         holder.eventDescriptionTextView.setText(event.getDescription());
         holder.eventLocationTextView.setText(event.getLocation());
         holder.eventDateTextView.setText(event.getDate());
 
-
-        // Set up the button's click listener
         holder.addToMyEventsButton.setOnClickListener(v -> {
-            // When the button is clicked, trigger the listener's method
-            listener.onAddToMyEventsClick(event);
+            listener.onAddToMyEventsClick(event); // Pass event to listener
         });
     }
 
     @Override
     public int getItemCount() {
-        // Return the number of events in the list
         return eventsList.size();
     }
 
     public static class EventViewHolder extends RecyclerView.ViewHolder {
-        // Declare views for event data and the button
         TextView eventNameTextView;
         TextView eventDescriptionTextView;
         TextView eventLocationTextView;
         TextView eventDateTextView;
-        Button addToMyEventsButton; // Button for adding to "My Events"
+        Button addToMyEventsButton;
 
         public EventViewHolder(View itemView) {
             super(itemView);
-            // Initialize views from the layout
             eventNameTextView = itemView.findViewById(R.id.eventNameTextView);
             eventDescriptionTextView = itemView.findViewById(R.id.eventDescriptionTextView);
             eventLocationTextView = itemView.findViewById(R.id.eventLocationTextView);
             eventDateTextView = itemView.findViewById(R.id.eventDateTextView);
-
-            addToMyEventsButton = itemView.findViewById(R.id.addButton); // Button to add event to "My Events"
+            addToMyEventsButton = itemView.findViewById(R.id.addButton);
         }
     }
-
-
 }

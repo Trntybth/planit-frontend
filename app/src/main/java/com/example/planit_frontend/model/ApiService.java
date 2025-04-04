@@ -69,5 +69,17 @@ public interface ApiService {
     @GET("users/email/{email}/usertype")
     Call<String> getUserTypeByEmail(@Path("email") String email);
 
+    // sign up
+
+    @POST("/events/signup/sign-up")
+    Call<ResponseBody> signUpForEvent(
+            @Query("memberEmail") String memberEmail,     // memberEmail as a query parameter
+            @Query("eventId") String eventId,             // eventId as a query parameter
+            @Body SignUpRequest signUpRequest             // The body contains the signup data
+    );
+
+//    @POST("events/signup/sign-up")
+//    Call<String> signUpForEvent(@Query("memberEmail") String memberEmail, @Query("eventId") String eventId);
+
 }
 
